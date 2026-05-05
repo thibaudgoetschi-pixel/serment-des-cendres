@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Le Serment des Cendres — Une aventure interactive</title>
+<meta name="description" content="Une aventure dont vous êtes le héros, en heroic fantasy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cormorant+Unicase:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--bg-deep:#050810;--parchment:#ead4a5;--parchment-shadow:#c9a96e;--gold:#c9a35a;--gold-bright:#e8c878;--blood:#8b1e1e;--c-cou:#d97070;--c-sag:#7aa3d9;--c-ast:#8ec98e;--c-coe:#d99cb8}
+html,body{height:100%}
+body{font-family:'EB Garamond',serif;background:var(--bg);color:var(--parchment);min-height:100vh;overflow-x:hidden;position:relative;background-image:radial-gradient(ellipse at top,#14182a 0%,var(--bg) 50%,var(--bg-deep) 100%),radial-gradient(circle at 20% 30%,rgba(201,163,90,.06),transparent 50%),radial-gradient(circle at 80% 70%,rgba(139,30,30,.05),transparent 50%);background-attachment:fixed}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 20px 30px,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 60px 70px,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 50px 160px,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 130px 40px,rgba(255,255,255,.4),transparent),radial-gradient(2px 2px at 90px 100px,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 200px 50px,rgba(255,255,255,.3),transparent);background-repeat:repeat;background-size:250px 200px;opacity:.65;z-index:0;pointer-events:none;animation:twinkle 5s ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.35}100%{opacity:.75}}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.65) 100%);pointer-events:none;z-index:1}
+#app{position:relative;z-index:10;max-width:920px;margin:0 auto;padding:1.5rem 1rem 4rem;min-height:100vh}
+.screen{display:none;animation:fadeIn .9s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#title-screen{text-align:center;padding:3rem 1rem;min-height:90vh;flex-direction:column;justify-content:center;align-items:center}
+#title-screen.active{display:flex}
+.title-ornament{font-size:3rem;color:var(--gold);margin-bottom:1.5rem;text-shadow:0 0 30px rgba(201,163,90,.5);animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+.game-title{font-family:'UnifrakturMaguntia',serif;font-size:clamp(2.6rem,9vw,5.5rem);line-height:1;color:var(--gold-bright);text-shadow:0 0 50px rgba(201,163,90,.45),0 2px 6px rgba(0,0,0,.85);margin-bottom:1rem;letter-spacing:.015em}
+.game-subtitle{font-family:'Cormorant Unicase',serif;font-size:clamp(.9rem,2.5vw,1.1rem);letter-spacing:.3em;color:var(--parchment-shadow);margin:0 0 2.5rem;text-transform:uppercase}
+.ornate-divider{display:flex;align-items:center;justify-content:center;gap:1rem;margin:1.25rem 0;color:var(--gold);opacity:.75;font-size:1.1rem}
+.ornate-divider::before,.ornate-divider::after{content:'';flex:0 1 100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+button{font-family:'Cormorant Unicase',serif;background:linear-gradient(180deg,rgba(201,163,90,.08),rgba(201,163,90,.18));border:1px solid var(--gold);color:var(--gold-bright);padding:.9rem 2rem;font-size:1rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .35s ease;border-radius:0;position:relative;overflow:hidden}
+button:disabled{opacity:.35;cursor:not-allowed;border-color:var(--parchment-shadow);color:var(--parchment-shadow)}
+button::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(232,200,120,.25),transparent);transition:left .65s ease}
+button:not(:disabled):hover{background:linear-gradient(180deg,rgba(201,163,90,.2),rgba(201,163,90,.35));box-shadow:0 0 30px rgba(201,163,90,.3);color:#fff5dc}
+button:not(:disabled):hover::before{left:100%}
+button:not(:disabled):active{transform:translateY(1px)}
+#character-screen{padding:2.5rem 1rem;text-align:center}
+#character-screen h2{font-family:'Cormorant Unicase',serif;font-size:clamp(1.3rem,4vw,1.7rem);color:var(--gold-bright);margin-bottom:1rem;letter-spacing:.1em}
+.label-italic{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-style:italic;color:var(--parchment);margin:2rem 0 1rem}
+#player-name{background:rgba(0,0,0,.3);border:none;border-bottom:1px solid var(--gold);color:var(--parchment);font-family:'Cormorant Garamond',serif;font-size:1.4rem;padding:.6rem 1rem;text-align:center;width:min(100%,320px);outline:none;transition:all .3s}
+#player-name:focus{border-bottom-color:var(--gold-bright);box-shadow:0 1px 0 var(--gold-bright),0 4px 20px rgba(201,163,90,.2)}
+.origin-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:800px;margin:1rem auto}
+.origin-card{background:rgba(0,0,0,.4);border:1px solid var(--parchment-shadow);padding:1.25rem;cursor:pointer;transition:all .3s;text-align:left}
+.origin-card:hover{border-color:var(--gold);background:rgba(201,163,90,.08);transform:translateY(-2px)}
+.origin-card.selected{border-color:var(--gold-bright);background:rgba(201,163,90,.15);box-shadow:0 0 20px rgba(201,163,90,.3)}
+.origin-name{font-family:'Cormorant Unicase',serif;font-size:1.3rem;color:var(--gold-bright);margin-bottom:.5rem;letter-spacing:.1em}
+.origin-desc{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--parchment);line-height:1.5}
+.origin-bonus{font-family:'Cormorant Unicase',serif;font-size:.8rem;color:var(--gold);margin-top:.6rem;letter-spacing:.15em}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;background:rgba(0,0,0,.55);border:1px solid var(--gold);border-left:3px solid var(--gold);border-right:3px solid var(--gold);padding:.75rem .5rem;margin-bottom:1.5rem}
+.moon-bar{display:flex;align-items:center;justify-content:center;gap:.7rem;background:rgba(0,0,0,.7);border:1px solid var(--gold);padding:.55rem .8rem;margin-bottom:.7rem;font-family:'Cormorant Unicase',serif;letter-spacing:.18em;font-size:.85rem;color:var(--parchment);transition:all .3s ease}
+.moon-bar.warn{border-color:#c97a4a;color:#e8a878;animation:moonpulse 2.5s ease-in-out infinite}
+.moon-bar.danger{border-color:#c95a4a;color:#f0928a;background:rgba(50,15,10,.85)}
+.moon-icon{font-size:1.4rem;line-height:1}
+@keyframes moonpulse{0%,100%{box-shadow:0 0 0 rgba(201,122,74,0)}50%{box-shadow:0 0 14px rgba(201,122,74,.55)}}
+.tic-cost{display:inline-block;font-family:'Cormorant Unicase',serif;font-size:.7rem;letter-spacing:.1em;color:#c9a878;opacity:.85;margin-left:.4rem;border:1px solid rgba(201,168,120,.4);padding:.05rem .35rem;border-radius:2px;vertical-align:middle}
+.stat-cost{display:inline-block;font-family:'Cormorant Unicase',serif;font-size:.65rem;letter-spacing:.08em;opacity:.7;margin-left:.3rem;vertical-align:middle}
+.stat{text-align:center}
+.stat-label{font-family:'Cormorant Unicase',serif;font-size:.65rem;color:var(--parchment-shadow);letter-spacing:.15em;margin-bottom:.25rem}
+.stat-value{font-family:'EB Garamond',serif;font-size:1.4rem;font-weight:600;transition:all .4s}
+.stat-courage .stat-value{color:var(--c-cou)}
+.stat-sagesse .stat-value{color:var(--c-sag)}
+.stat-astuce .stat-value{color:var(--c-ast)}
+.stat-coeur .stat-value{color:var(--c-coe)}
+.stat-value.flash{text-shadow:0 0 15px currentColor;transform:scale(1.35)}
+.illustration{width:100%;aspect-ratio:30/14;margin-bottom:1rem;border:1px solid var(--gold);overflow:hidden;position:relative;background:var(--bg-deep);box-shadow:0 0 40px rgba(0,0,0,.6) inset}
+.illustration svg{width:100%;height:100%;display:block}
+.scene-title{font-family:'UnifrakturMaguntia','Cormorant Unicase',serif;font-size:clamp(1.7rem,5vw,2.4rem);color:var(--gold-bright);text-align:center;margin:1.5rem 0 1rem;line-height:1.05;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.scene-text{font-family:'EB Garamond',serif;font-size:clamp(1rem,2.4vw,1.15rem);line-height:1.85;color:var(--parchment);max-width:700px;margin:0 auto 2rem;padding:0 .5rem}
+.scene-text p{margin-bottom:1rem;text-align:justify;hyphens:auto}
+.scene-text p:first-child::first-letter{font-family:'UnifrakturMaguntia',serif;font-size:3rem;float:left;line-height:1;margin:.1rem .55rem -.4rem 0;color:var(--gold);text-shadow:0 0 8px rgba(201,163,90,.4)}
+.scene-text .flavor{font-style:italic;color:var(--gold);text-align:center;border-top:1px solid rgba(201,163,90,.3);border-bottom:1px solid rgba(201,163,90,.3);padding:1rem 0;margin:1rem 0}
+.scene-text .flavor::first-letter{all:unset}
+.choices{display:grid;gap:.75rem;max-width:700px;margin:0 auto 2rem}
+.choice-btn{background:linear-gradient(180deg,rgba(20,24,42,.85),rgba(10,14,26,.92));border:1px solid var(--parchment-shadow);color:var(--parchment);text-align:left;text-transform:none;letter-spacing:.02em;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;padding:1rem 1.25rem;line-height:1.4;transition:all .3s;border-left:3px solid var(--parchment-shadow);animation:choiceIn .5s ease backwards}
+@keyframes choiceIn{from{opacity:0;transform:translateX(-15px)}to{opacity:1;transform:translateX(0)}}
+.choice-btn:hover{border-color:var(--gold);border-left-color:var(--gold-bright);background:linear-gradient(180deg,rgba(60,50,30,.55),rgba(30,20,10,.85));color:var(--gold-bright);transform:translateX(4px)}
+.choice-btn::before{display:none}
+.stat-tag{display:inline-block;margin-left:.35em;font-size:.95em;padding:.02em .4em;vertical-align:baseline;border-radius:3px;border:1px solid currentColor;font-style:normal;letter-spacing:0;background:rgba(0,0,0,.25);font-weight:500}
+.stat-tag.cou{color:var(--c-cou)}
+.stat-tag.sag{color:var(--c-sag)}
+.stat-tag.ast{color:var(--c-ast)}
+.stat-tag.coe{color:var(--c-coe)}
+.choice-locked{opacity:.5;cursor:not-allowed!important;background:rgba(0,0,0,.55)!important;border-color:rgba(201,169,110,.25)!important;color:var(--parchment-shadow)!important;border-left-color:rgba(201,169,110,.25)!important}
+.choice-locked:hover{transform:none!important;border-color:rgba(201,169,110,.25)!important;background:rgba(0,0,0,.55)!important;color:var(--parchment-shadow)!important}
+.lock-hint{display:block;font-size:.82em;color:var(--gold);margin-top:.4em;letter-spacing:.03em;font-style:italic;opacity:.85;text-transform:none}
+.altar-callback{color:var(--gold)!important;font-style:italic;text-align:center;font-size:.95em;border-left:2px solid var(--gold);border-right:2px solid var(--gold);padding:.4rem 1rem;margin:.6rem auto;max-width:90%}
+.altar-callback::first-letter{all:unset!important}
+.inventory-section{max-width:700px;margin:0 auto;padding:1rem;border-top:1px solid rgba(201,163,90,.3);border-bottom:1px solid rgba(201,163,90,.3)}
+.inventory-label{font-family:'Cormorant Unicase',serif;font-size:.8rem;color:var(--parchment-shadow);letter-spacing:.25em;margin-bottom:.6rem;text-align:center}
+.inventory-items{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.inventory-item{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-style:italic;color:var(--gold);padding:.25rem .8rem;border:1px solid rgba(201,163,90,.4);background:rgba(201,163,90,.05)}
+.inventory-empty{color:var(--parchment-shadow);font-style:italic;opacity:.5}
+#ending-screen{text-align:center;padding:2.5rem 1rem}
+.share-row{display:flex;justify-content:center;gap:.55rem;margin-top:1rem;flex-wrap:wrap}
+.share-icon-btn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(201,163,90,.5);background:rgba(0,0,0,.4);color:var(--parchment);font-size:1.25rem;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s ease;padding:0;font-family:inherit;letter-spacing:0}
+.share-icon-btn:hover{background:rgba(201,163,90,.18);border-color:var(--gold-bright);transform:translateY(-2px);box-shadow:0 4px 12px rgba(201,163,90,.25)}
+.share-icon-btn[data-net="wa"]:hover{border-color:#25d366;color:#25d366}
+.share-icon-btn[data-net="fb"]:hover{border-color:#4267b2;color:#6f9be0}
+.share-icon-btn[data-net="x"]:hover{border-color:#fff;color:#fff}
+.share-icon-btn[data-net="tg"]:hover{border-color:#0088cc;color:#0088cc}
+.share-icon-btn[data-net="link"]:hover{border-color:var(--gold-bright)}
+.share-row-label{font-family:'Cormorant Unicase',serif;font-size:.7rem;letter-spacing:.18em;color:var(--parchment-shadow);text-transform:uppercase;margin-top:1.2rem;margin-bottom:.5rem;opacity:.7}
+.ending-title-prefix{font-family:'Cormorant Unicase',serif;font-size:.85rem;color:var(--parchment-shadow);letter-spacing:.4em;margin-bottom:1rem}
+.ending-title{font-family:'UnifrakturMaguntia',serif;font-size:clamp(2.2rem,7vw,4rem);color:var(--gold-bright);line-height:1;margin-bottom:2rem;text-shadow:0 0 40px rgba(201,163,90,.5)}
+.ending-text{font-family:'EB Garamond',serif;font-size:clamp(1rem,2.5vw,1.2rem);line-height:1.9;color:var(--parchment);max-width:700px;margin:0 auto 2.5rem}
+.ending-text p{margin-bottom:1.1rem;text-align:justify}
+.ending-stats{margin:2rem auto;max-width:520px;padding:1rem;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold)}
+.ending-actions{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:2rem}
+@media (max-width:600px){.stats-bar{padding:.6rem .25rem;gap:.25rem}.stat-label{font-size:.55rem;letter-spacing:.12em}.stat-value{font-size:1.2rem}#app{padding:1rem .75rem 3rem}.scene-text{line-height:1.7}.choice-btn{font-size:1rem;padding:.85rem 1rem}button{padding:.8rem 1.2rem;letter-spacing:.15em;font-size:.9rem}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen active">
+    <div class="title-ornament">⚜</div>
+    <h1 class="game-title">Le Serment<br>des Cendres</h1>
+    <div class="ornate-divider">✦</div>
+    <p class="game-subtitle">Une aventure dont vous êtes le héros</p>
+    <button id="begin-btn">Commencer le récit</button>
+    <details style="margin-top:1.5rem;font-size:.85rem;color:var(--parchment-shadow);max-width:30rem;text-align:left;background:rgba(0,0,0,.3);border:1px solid rgba(201,163,90,.3);padding:.7rem 1rem">
+      <summary style="cursor:pointer;font-family:'Cormorant Unicase',serif;letter-spacing:.15em;color:var(--gold);text-align:center;outline:none">Comment jouer</summary>
+      <div style="margin-top:.7rem;line-height:1.6">
+        <p style="margin:.4rem 0">⚔ <strong>4 stats</strong> (courage, sagesse, astuce, cœur) gardent certains choix et déclenchent certaines fins.</p>
+        <p style="margin:.4rem 0">🌒 <strong>3 jours</strong> jusqu'à la lune nouvelle. Le compteur en haut suit ton temps. Certains choix te coûtent du temps. La lune n'attend pas — si tu arrives trop tard, c'est une fin différente.</p>
+        <p style="margin:.4rem 0">🎒 Ton <strong>inventaire</strong> est la clé des fins rares. Chaque objet a son usage — ou son sacrifice.</p>
+        <p style="margin:.4rem 0">⚡ Les choix marqués ainsi sont des <strong>raccourcis</strong> : ils sacrifient un objet pour gagner du temps, mais ferment certaines fins.</p>
+        <p style="margin:.4rem 0">↻ Le jeu a <strong>16 fins</strong>. Certaines sont cachées — à toi de les découvrir au fil des parties.</p>
+      </div>
+    </details>
+    <p style="margin-top:1.5rem;font-style:italic;opacity:.5;font-size:.9rem;color:var(--parchment-shadow)">Trois jours avant la nouvelle lune.<br>La brume gagne le royaume.</p>
+  </div>
+
+  <div id="character-screen" class="screen">
+    <h2>Avant que le récit ne commence</h2>
+    <div class="ornate-divider">✦</div>
+    <p class="label-italic">Quel est votre nom, voyageur ?</p>
+    <input id="player-name" placeholder="..." maxlength="20">
+    <p class="label-italic">D'où venez-vous ?</p>
+    <div class="origin-choices">
+      <div class="origin-card" data-origin="lame">
+        <div class="origin-name">⚔ La Lame</div>
+        <div class="origin-desc">Élevé(e) au combat. Votre cœur bat plus vite quand on dégaine.</div>
+        <div class="origin-bonus">+2 Courage</div>
+      </div>
+      <div class="origin-card" data-origin="plume">
+        <div class="origin-name">📜 La Plume</div>
+        <div class="origin-desc">Vous avez grandi parmi les livres et les vieilles légendes.</div>
+        <div class="origin-bonus">+2 Sagesse</div>
+      </div>
+      <div class="origin-card" data-origin="ombre">
+        <div class="origin-name">🗝 L'Ombre</div>
+        <div class="origin-desc">Les ruelles vous ont appris l'art de passer inaperçu(e).</div>
+        <div class="origin-bonus">+2 Astuce</div>
+      </div>
+    </div>
+    <button id="confirm-character" style="margin-top:2rem" disabled>Sceller le destin</button>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <div class="moon-bar" id="moon-bar"><span class="moon-icon" id="moon-icon">🌒</span><span id="moon-label">Jour 1 — la lune décroît</span></div>
+    <div class="stats-bar">
+      <div class="stat stat-courage"><div class="stat-label">⚔ COURAGE</div><div class="stat-value" id="stat-courage">0</div></div>
+      <div class="stat stat-sagesse"><div class="stat-label">📜 SAGESSE</div><div class="stat-value" id="stat-sagesse">0</div></div>
+      <div class="stat stat-astuce"><div class="stat-label">🗝 ASTUCE</div><div class="stat-value" id="stat-astuce">0</div></div>
+      <div class="stat stat-coeur"><div class="stat-label">❤ CŒUR</div><div class="stat-value" id="stat-coeur">0</div></div>
+    </div>
+    <div class="illustration" id="illustration"></div>
+    <h2 class="scene-title" id="scene-title"></h2>
+    <div class="scene-text" id="scene-text"></div>
+    <div class="choices" id="choices"></div>
+    <div class="inventory-section">
+      <div class="inventory-label">— Votre besace —</div>
+      <div class="inventory-items" id="inventory-items"></div>
+    </div>
+  </div>
+
+  <div id="ending-screen" class="screen">
+    <div class="title-ornament">⚜</div>
+    <div class="ending-title-prefix">— FIN OBTENUE —</div>
+    <h1 class="ending-title" id="ending-title"></h1>
+    <div class="ornate-divider">✦</div>
+    <div class="ending-text" id="ending-text"></div>
+    <div class="ending-stats" id="ending-stats"></div>
+    <div class="ending-actions">
+      <button id="restart-btn">Recommencer le récit</button>
+      <button id="share-btn">Partager ma fin</button>
+    </div>
+    <div class="share-row-label">— ou directement —</div>
+    <div class="share-row">
+      <button class="share-icon-btn" data-net="wa" title="Partager sur WhatsApp" aria-label="Partager sur WhatsApp">💬</button>
+      <button class="share-icon-btn" data-net="fb" title="Partager sur Facebook" aria-label="Partager sur Facebook">f</button>
+      <button class="share-icon-btn" data-net="x" title="Partager sur X" aria-label="Partager sur X">𝕏</button>
+      <button class="share-icon-btn" data-net="tg" title="Partager sur Telegram" aria-label="Partager sur Telegram">✈</button>
+      <button class="share-icon-btn" data-net="link" title="Copier le lien" aria-label="Copier le lien">🔗</button>
+      <button class="share-icon-btn" id="edit-url-btn" title="Modifier l'URL de partage" aria-label="Modifier l'URL de partage" style="opacity:.5;font-size:.9rem">✏</button>
+    </div>
+  </div>
+</div>
+<div style="position:fixed;bottom:.5rem;right:.7rem;font-size:.65rem;color:var(--parchment-shadow);opacity:.45;font-family:'Cormorant Garamond',serif;letter-spacing:.1em;z-index:20;pointer-events:none">v3.6 · 4 mai 2026</div>
+<script>
+// ====== SVG ILLUSTRATIONS ======
+const ILLU = {
+village:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sk1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1f3a"/><stop offset="60%" stop-color="#0d1224"/><stop offset="100%" stop-color="#08081a"/></linearGradient><radialGradient id="mn1"><stop offset="0%" stop-color="#fffacd"/><stop offset="50%" stop-color="rgba(255,250,205,.4)"/><stop offset="100%" stop-color="rgba(255,250,205,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#sk1)"/><circle cx="80" cy="40" r="1" fill="#fff" opacity=".8"/><circle cx="150" cy="70" r="1.5" fill="#fff" opacity=".6"/><circle cx="280" cy="30" r="1" fill="#fff" opacity=".7"/><circle cx="400" cy="50" r="1" fill="#fff" opacity=".5"/><circle cx="500" cy="80" r="1.5" fill="#fff" opacity=".7"/><circle cx="200" cy="90" r="1" fill="#fff" opacity=".4"/><circle cx="350" cy="100" r="1" fill="#fff" opacity=".6"/><circle cx="450" cy="65" r="40" fill="url(#mn1)"/><circle cx="450" cy="65" r="25" fill="#fff5d4" opacity=".85"/><polygon points="0,200 80,140 160,170 240,120 320,160 400,130 480,170 560,135 600,165 600,280 0,280" fill="#0a0e1a" opacity=".9"/><rect x="380" y="135" width="14" height="50" fill="#0a0e1a"/><polygon points="380,135 387,118 394,135" fill="#0a0e1a"/><polygon points="100,250 130,210 160,250" fill="#0a0e1a"/><polygon points="160,255 200,205 240,255" fill="#0a0e1a"/><polygon points="240,253 270,225 300,253" fill="#0a0e1a"/><polygon points="300,255 340,215 380,255" fill="#0a0e1a"/><polygon points="380,253 410,228 440,253" fill="#0a0e1a"/><polygon points="440,255 480,215 520,255" fill="#0a0e1a"/><rect x="195" y="225" width="6" height="8" fill="#e8c878" opacity=".9"/><rect x="345" y="232" width="6" height="8" fill="#e8c878" opacity=".7"/><ellipse cx="150" cy="270" rx="180" ry="12" fill="#aab8c8" opacity=".15"/><ellipse cx="450" cy="265" rx="180" ry="12" fill="#aab8c8" opacity=".15"/></svg>`,
+forest:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fs" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2030"/><stop offset="100%" stop-color="#0a0e1a"/></linearGradient><radialGradient id="mb" cx=".5" cy="0"><stop offset="0%" stop-color="rgba(200,220,255,.4)"/><stop offset="100%" stop-color="rgba(200,220,255,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#fs)"/><ellipse cx="300" cy="120" rx="180" ry="180" fill="url(#mb)"/><g opacity=".5"><rect x="50" y="90" width="8" height="190" fill="#0a0e1a"/><rect x="120" y="70" width="10" height="210" fill="#0a0e1a"/><rect x="180" y="100" width="7" height="180" fill="#0a0e1a"/><rect x="420" y="80" width="9" height="200" fill="#0a0e1a"/><rect x="490" y="100" width="8" height="180" fill="#0a0e1a"/><rect x="550" y="90" width="10" height="190" fill="#0a0e1a"/></g><g><rect x="20" y="50" width="14" height="230" fill="#000"/><ellipse cx="27" cy="50" rx="35" ry="30" fill="#000"/><rect x="80" y="70" width="12" height="210" fill="#000"/><ellipse cx="86" cy="65" rx="32" ry="28" fill="#000"/><rect x="510" y="60" width="14" height="220" fill="#000"/><ellipse cx="517" cy="60" rx="34" ry="30" fill="#000"/><rect x="570" y="80" width="13" height="200" fill="#000"/><ellipse cx="576" cy="75" rx="30" ry="25" fill="#000"/></g><ellipse cx="300" cy="240" rx="320" ry="35" fill="#a0b8d0" opacity=".2"/><ellipse cx="200" cy="260" rx="200" ry="20" fill="#a0b8d0" opacity=".15"/><g transform="translate(280,180)" opacity=".95"><ellipse cx="20" cy="25" rx="22" ry="11" fill="#1a1f30"/><rect x="6" y="30" width="2" height="22" fill="#1a1f30"/><rect x="14" y="32" width="2" height="20" fill="#1a1f30"/><rect x="28" y="32" width="2" height="20" fill="#1a1f30"/><rect x="36" y="30" width="2" height="22" fill="#1a1f30"/><path d="M 38 22 Q 46 12 50 8 L 52 8 L 50 24 Z" fill="#1a1f30"/><ellipse cx="51" cy="6" rx="4" ry="3" fill="#1a1f30"/><path d="M 49 4 L 47 -2 L 50 1 Z" fill="#1a1f30"/><path d="M 53 4 L 56 -2 L 55 2 Z" fill="#1a1f30"/><circle cx="52" cy="6" r=".9" fill="#dde8ff"/></g></svg>`,
+mountain:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ms" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a2438"/><stop offset="50%" stop-color="#1a1428"/><stop offset="100%" stop-color="#3a2a1a"/></linearGradient></defs><rect width="600" height="280" fill="url(#ms)"/><ellipse cx="450" cy="180" rx="200" ry="80" fill="#c97050" opacity=".4"/><polygon points="0,200 80,100 140,150 220,80 300,140 380,90 460,150 540,110 600,160 600,280 0,280" fill="#1a1428" opacity=".8"/><polygon points="0,230 60,160 130,200 200,140 280,190 360,150 440,200 520,160 600,210 600,280 0,280" fill="#0a0e1a"/><polygon points="0,260 50,210 100,250 150,200 220,250 280,220 360,260 420,230 500,260 560,240 600,260 600,280 0,280" fill="#000"/><g transform="translate(280,198)"><ellipse cx="0" cy="6" rx="5" ry="9" fill="#000"/><circle cx="0" cy="-6" r="3.5" fill="#000"/><line x1="0" y1="2" x2="-7" y2="6" stroke="#000" stroke-width="2"/><line x1="0" y1="2" x2="8" y2="0" stroke="#000" stroke-width="2"/><line x1="8" y1="0" x2="14" y2="-12" stroke="#000" stroke-width="1.5"/><polygon points="13,-13 18,-10 16,-15" fill="#000"/><line x1="-2" y1="14" x2="-3" y2="22" stroke="#000" stroke-width="2.5"/><line x1="2" y1="14" x2="3" y2="22" stroke="#000" stroke-width="2.5"/></g></svg>`,
+coast:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2438"/><stop offset="60%" stop-color="#3a3848"/><stop offset="100%" stop-color="#1a2030"/></linearGradient><linearGradient id="se" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a3848"/><stop offset="100%" stop-color="#0a1018"/></linearGradient></defs><rect width="600" height="180" fill="url(#cs)"/><rect y="180" width="600" height="100" fill="url(#se)"/><ellipse cx="120" cy="60" rx="150" ry="30" fill="#0a0e1a" opacity=".7"/><ellipse cx="350" cy="40" rx="180" ry="25" fill="#0a0e1a" opacity=".6"/><ellipse cx="500" cy="70" rx="140" ry="35" fill="#0a0e1a" opacity=".7"/><path d="M 220 30 L 215 70 L 225 75 L 218 110 L 232 80 L 220 75 L 230 50 Z" fill="#fffae6" opacity=".75"/><path d="M 0 200 Q 50 195 100 200 T 200 200 T 300 200 T 400 200 T 500 200 T 600 200 L 600 220 L 0 220 Z" fill="#3a4858" opacity=".6"/><path d="M 0 215 Q 60 210 120 215 T 240 215 T 360 215 T 480 215 T 600 215 L 600 235 L 0 235 Z" fill="#2a3848" opacity=".7"/><g transform="translate(380,195)"><path d="M 0 0 L 80 5 L 70 30 L 10 25 Z" fill="#1a0e08"/><line x1="40" y1="0" x2="20" y2="-50" stroke="#1a0e08" stroke-width="3"/><line x1="50" y1="2" x2="80" y2="-30" stroke="#1a0e08" stroke-width="2"/><path d="M 22 -45 L 18 -25 L 30 -30 Z" fill="#3a3028" opacity=".7"/></g><ellipse cx="80" cy="245" rx="60" ry="25" fill="#000"/><ellipse cx="180" cy="255" rx="50" ry="20" fill="#000"/><ellipse cx="500" cy="260" rx="70" ry="25" fill="#000"/><ellipse cx="600" cy="250" rx="50" ry="22" fill="#000"/></svg>`,
+inn:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="wg"><stop offset="0%" stop-color="#ffd99a"/><stop offset="40%" stop-color="#c9893a"/><stop offset="100%" stop-color="rgba(120,60,20,0)"/></radialGradient></defs><rect width="600" height="280" fill="#0a0e1a"/><ellipse cx="300" cy="200" rx="500" ry="100" fill="#aab8c8" opacity=".08"/><ellipse cx="300" cy="240" rx="500" ry="60" fill="#aab8c8" opacity=".1"/><g opacity=".6"><polygon points="50,200 60,140 70,200" fill="#000"/><polygon points="80,210 92,150 105,210" fill="#000"/><polygon points="500,205 512,145 525,205" fill="#000"/><polygon points="540,210 553,150 568,210" fill="#000"/></g><ellipse cx="300" cy="180" rx="250" ry="120" fill="url(#wg)" opacity=".5"/><rect x="200" y="130" width="200" height="120" fill="#0a0e1a"/><polygon points="190,130 300,70 410,130" fill="#0a0e1a"/><rect x="350" y="80" width="14" height="50" fill="#0a0e1a"/><ellipse cx="357" cy="70" rx="6" ry="3" fill="#5a6878" opacity=".4"/><ellipse cx="360" cy="60" rx="9" ry="4" fill="#5a6878" opacity=".3"/><ellipse cx="365" cy="48" rx="13" ry="5" fill="#5a6878" opacity=".2"/><rect x="232" y="170" width="22" height="32" fill="#ffd99a" opacity=".88"/><line x1="243" y1="170" x2="243" y2="202" stroke="#1a0e08" stroke-width="1.5"/><line x1="232" y1="186" x2="254" y2="186" stroke="#1a0e08" stroke-width="1.5"/><rect x="290" y="170" width="22" height="32" fill="#ffd99a" opacity=".92"/><line x1="301" y1="170" x2="301" y2="202" stroke="#1a0e08" stroke-width="1.5"/><line x1="290" y1="186" x2="312" y2="186" stroke="#1a0e08" stroke-width="1.5"/><rect x="346" y="170" width="22" height="32" fill="#ffd99a" opacity=".85"/><line x1="357" y1="170" x2="357" y2="202" stroke="#1a0e08" stroke-width="1.5"/><line x1="346" y1="186" x2="368" y2="186" stroke="#1a0e08" stroke-width="1.5"/><rect x="288" y="210" width="28" height="42" fill="#1a0e08"/><rect x="288" y="210" width="28" height="42" fill="url(#wg)" opacity=".4"/><rect x="395" y="155" width="40" height="18" fill="#1a0e08" stroke="#c9a35a" stroke-width=".5"/><text x="415" y="167" font-family="serif" font-size="6" fill="#c9a35a" text-anchor="middle">LOUP D'ARGENT</text><circle cx="415" cy="153" r="3" fill="#ffd99a" opacity=".9"/></svg>`,
+tower:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ts" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2050"/><stop offset="50%" stop-color="#0a0e2a"/><stop offset="100%" stop-color="#0a0e1a"/></linearGradient><radialGradient id="tg"><stop offset="0%" stop-color="rgba(232,200,120,.6)"/><stop offset="100%" stop-color="rgba(232,200,120,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#ts)"/><g fill="#fff"><circle cx="50" cy="40" r="1.5" opacity=".9"/><circle cx="120" cy="20" r="1" opacity=".7"/><circle cx="200" cy="50" r="1.2" opacity=".8"/><circle cx="80" cy="100" r=".8" opacity=".6"/><circle cx="450" cy="30" r="1" opacity=".7"/><circle cx="520" cy="60" r="1.5" opacity=".9"/><circle cx="380" cy="80" r=".9" opacity=".6"/><circle cx="560" cy="25" r="1" opacity=".7"/><circle cx="160" cy="80" r="1" opacity=".5"/><circle cx="490" cy="100" r=".8" opacity=".5"/></g><g stroke="#c9a35a" stroke-width=".3" opacity=".4" fill="none"><line x1="50" y1="40" x2="120" y2="20"/><line x1="120" y1="20" x2="200" y2="50"/><line x1="200" y1="50" x2="160" y2="80"/></g><polygon points="0,260 100,200 250,230 600,210 600,280 0,280" fill="#0a0e1a"/><ellipse cx="320" cy="120" rx="120" ry="160" fill="url(#tg)"/><rect x="305" y="80" width="30" height="170" fill="#1a1828"/><polygon points="300,85 320,40 340,85" fill="#1a1828"/><circle cx="320" cy="38" r="3" fill="#e8c878"/><rect x="313" y="110" width="6" height="10" fill="#e8c878" opacity=".9"/><rect x="320" y="135" width="6" height="10" fill="#e8c878" opacity=".7"/><rect x="313" y="165" width="6" height="10" fill="#e8c878" opacity=".8"/><rect x="320" y="195" width="6" height="10" fill="#e8c878" opacity=".6"/><polygon points="290,250 305,230 335,230 350,250" fill="#0a0e1a"/><g transform="translate(320,245)"><rect x="-12" y="-25" width="24" height="22" fill="#3a3a4a"/><rect x="-7" y="-37" width="14" height="13" fill="#3a3a4a"/><rect x="-5" y="-32" width="3" height="2" fill="#e8c878"/><rect x="2" y="-32" width="3" height="2" fill="#e8c878"/><rect x="-18" y="-22" width="6" height="20" fill="#3a3a4a"/><rect x="12" y="-22" width="6" height="20" fill="#3a3a4a"/><line x1="-8" y1="-23" x2="-2" y2="-15" stroke="#c9a35a" stroke-width=".4" opacity=".7"/><line x1="3" y1="-20" x2="6" y2="-12" stroke="#c9a35a" stroke-width=".4" opacity=".7"/></g><ellipse cx="300" cy="265" rx="280" ry="15" fill="#aab8c8" opacity=".2"/></svg>`,
+altar:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="cm" cx=".5" cy=".4"><stop offset="0%" stop-color="#3a2860"/><stop offset="40%" stop-color="#1a1240"/><stop offset="100%" stop-color="#000"/></radialGradient><radialGradient id="ag"><stop offset="0%" stop-color="rgba(232,200,120,.7)"/><stop offset="100%" stop-color="rgba(232,200,120,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#cm)"/><g opacity=".4"><ellipse cx="300" cy="120" rx="240" ry="60" fill="#5a4880" opacity=".3" transform="rotate(-15 300 120)"/><ellipse cx="300" cy="120" rx="160" ry="40" fill="#7a6a90" opacity=".4" transform="rotate(-15 300 120)"/></g><g fill="#fff"><circle cx="80" cy="40" r="1" opacity=".9"/><circle cx="150" cy="80" r=".8" opacity=".7"/><circle cx="250" cy="30" r="1.5" opacity=".95"/><circle cx="350" cy="70" r=".9" opacity=".7"/><circle cx="450" cy="40" r="1.2" opacity=".9"/><circle cx="520" cy="100" r="1" opacity=".7"/><circle cx="60" cy="150" r=".8" opacity=".6"/><circle cx="540" cy="180" r="1" opacity=".7"/></g><polygon points="0,230 600,230 700,280 -100,280" fill="#0a0820"/><line x1="0" y1="240" x2="600" y2="240" stroke="#c9a35a" stroke-width=".3" opacity=".4"/><rect x="60" y="100" width="20" height="135" fill="#1a1428"/><rect x="55" y="95" width="30" height="10" fill="#1a1428"/><rect x="55" y="230" width="30" height="8" fill="#1a1428"/><rect x="520" y="100" width="20" height="135" fill="#1a1428"/><rect x="515" y="95" width="30" height="10" fill="#1a1428"/><rect x="515" y="230" width="30" height="8" fill="#1a1428"/><ellipse cx="300" cy="200" rx="120" ry="80" fill="url(#ag)"/><rect x="270" y="200" width="60" height="35" fill="#1a0e1a"/><rect x="265" y="195" width="70" height="8" fill="#2a1828"/><rect x="265" y="232" width="70" height="6" fill="#2a1828"/><circle cx="300" cy="170" r="22" fill="none" stroke="#e8c878" stroke-width="1.5" opacity=".9"/><circle cx="300" cy="170" r="15" fill="none" stroke="#e8c878" stroke-width="1" opacity=".7"/><path d="M 282 160 L 295 168 L 290 178 L 305 175 L 318 165" stroke="#8b1e1e" stroke-width="1.5" fill="none" opacity=".95"/><text x="300" y="143" font-family="serif" font-size="14" fill="#e8c878" text-anchor="middle" opacity=".7">✶</text><ellipse cx="300" cy="245" rx="180" ry="10" fill="#aab8c8" opacity=".15"/></svg>`,
+ash_river:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ars" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a2030"/><stop offset="60%" stop-color="#2a1828"/><stop offset="100%" stop-color="#1a1018"/></linearGradient><linearGradient id="arr" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a3030"/><stop offset="50%" stop-color="#3a2020"/><stop offset="100%" stop-color="#1a1010"/></linearGradient><radialGradient id="arg"><stop offset="0%" stop-color="rgba(255,136,85,.5)"/><stop offset="100%" stop-color="rgba(255,136,85,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#ars)"/><circle cx="80" cy="40" r="1" fill="#fff" opacity=".5"/><circle cx="450" cy="50" r="1" fill="#fff" opacity=".4"/><circle cx="200" cy="70" r=".8" fill="#fff" opacity=".3"/><ellipse cx="300" cy="180" rx="350" ry="60" fill="url(#arg)"/><rect x="295" y="115" width="14" height="60" fill="#0a0510"/><polygon points="290,118 302,85 314,118" fill="#0a0510"/><circle cx="302" cy="83" r="2.5" fill="#e8c878" opacity=".95"/><polygon points="0,175 80,155 160,175 240,160 320,175 400,155 480,175 560,160 600,175 600,200 0,200" fill="#0a0508"/><polygon points="0,200 100,210 200,200 300,215 400,200 500,210 600,200 600,280 0,280" fill="#1a0808"/><rect y="200" width="600" height="45" fill="url(#arr)"/><ellipse cx="100" cy="210" rx="80" ry="6" fill="#7a4040" opacity=".55"/><ellipse cx="350" cy="215" rx="120" ry="8" fill="#7a4040" opacity=".45"/><ellipse cx="500" cy="208" rx="80" ry="6" fill="#7a4040" opacity=".55"/><circle cx="80" cy="225" r="1.5" fill="#ff6633" opacity=".85"/><circle cx="220" cy="230" r="1.2" fill="#ff8844" opacity=".75"/><circle cx="380" cy="220" r="1.5" fill="#ff6633" opacity=".75"/><circle cx="500" cy="225" r="1" fill="#ff8844" opacity=".65"/><circle cx="150" cy="160" r="1" fill="#ff6633" opacity=".55"/><circle cx="450" cy="140" r="1" fill="#ff8844" opacity=".5"/><circle cx="280" cy="180" r=".8" fill="#ff6633" opacity=".4"/><ellipse cx="300" cy="220" rx="350" ry="10" fill="#aab8c8" opacity=".15"/><ellipse cx="200" cy="240" rx="200" ry="8" fill="#aab8c8" opacity=".12"/></svg>`,
+forest_pond:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fps" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2438"/><stop offset="100%" stop-color="#0a1a28"/></linearGradient><radialGradient id="fpg"><stop offset="0%" stop-color="rgba(180,200,255,.4)"/><stop offset="100%" stop-color="rgba(180,200,255,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#fps)"/><circle cx="100" cy="40" r="1" fill="#fff" opacity=".7"/><circle cx="400" cy="50" r="1" fill="#fff" opacity=".6"/><circle cx="200" cy="60" r=".8" fill="#fff" opacity=".5"/><ellipse cx="350" cy="100" rx="180" ry="60" fill="url(#fpg)"/><rect x="20" y="70" width="10" height="210" fill="#000"/><ellipse cx="25" cy="70" rx="38" ry="32" fill="#000"/><rect x="80" y="50" width="12" height="230" fill="#000"/><ellipse cx="86" cy="50" rx="42" ry="38" fill="#000"/><rect x="510" y="70" width="10" height="210" fill="#000"/><ellipse cx="515" cy="70" rx="38" ry="32" fill="#000"/><rect x="570" y="60" width="11" height="220" fill="#000"/><ellipse cx="575" cy="60" rx="38" ry="32" fill="#000"/><polygon points="120,210 165,170 210,210" fill="#1a0e08"/><rect x="125" y="210" width="80" height="50" fill="#1a0e08"/><rect x="155" y="230" width="22" height="30" fill="#0a0508"/><rect x="135" y="220" width="12" height="14" fill="#ffd99a" opacity=".85"/><ellipse cx="370" cy="225" rx="160" ry="32" fill="#0a0810"/><ellipse cx="370" cy="225" rx="120" ry="20" fill="#1a1828" opacity=".5"/><line x1="320" y1="215" x2="380" y2="200" stroke="#dde8ff" stroke-width=".8" opacity=".6"/><line x1="380" y1="200" x2="430" y2="220" stroke="#dde8ff" stroke-width=".6" opacity=".5"/><line x1="350" y1="205" x2="410" y2="190" stroke="#dde8ff" stroke-width=".5" opacity=".4"/><g transform="translate(295,210)"><ellipse cx="0" cy="-2" rx="9" ry="13" fill="#000"/><circle cx="0" cy="-18" r="6" fill="#000"/><polygon points="-12,-22 12,-22 8,-15 -8,-15" fill="#000"/></g><ellipse cx="300" cy="245" rx="280" ry="12" fill="#a0b8d0" opacity=".18"/></svg>`,
+shrine:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="shs" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3a2438"/><stop offset="100%" stop-color="#1a1018"/></linearGradient><radialGradient id="shg"><stop offset="0%" stop-color="rgba(255,217,154,.6)"/><stop offset="100%" stop-color="rgba(255,217,154,0)"/></radialGradient></defs><rect width="600" height="280" fill="url(#shs)"/><circle cx="80" cy="40" r="1" fill="#fff" opacity=".6"/><circle cx="450" cy="60" r=".8" fill="#fff" opacity=".5"/><circle cx="280" cy="30" r="1" fill="#fff" opacity=".5"/><polygon points="0,180 120,100 240,140 360,80 480,130 600,90 600,280 0,280" fill="#1a1428" opacity=".8"/><polygon points="0,200 200,180 400,210 600,190 600,280 0,280" fill="#0a0810"/><ellipse cx="300" cy="180" rx="130" ry="65" fill="#000"/><ellipse cx="270" cy="190" rx="40" ry="20" fill="url(#shg)" opacity=".7"/><rect x="290" y="135" width="20" height="55" fill="#3a3a4a"/><polygon points="285,135 300,115 315,135" fill="#3a3a4a"/><line x1="300" y1="115" x2="296" y2="190" stroke="#0a0810" stroke-width="1.5"/><line x1="295" y1="155" x2="305" y2="170" stroke="#0a0810" stroke-width=".8"/><circle cx="265" cy="200" r="2" fill="#c9a35a" opacity=".85"/><circle cx="275" cy="203" r="1.5" fill="#c9a35a" opacity=".75"/><circle cx="320" cy="200" r="2" fill="#c9a35a" opacity=".85"/><circle cx="328" cy="197" r="1.5" fill="#c9a35a" opacity=".75"/><ellipse cx="260" cy="190" rx="2.5" ry="5" fill="#ffd99a" opacity=".95"/><circle cx="260" cy="192" r="3.5" fill="#ffd99a" opacity=".5"/><line x1="100" y1="100" x2="190" y2="105" stroke="#fff" stroke-width=".5" opacity=".25"/><line x1="400" y1="80" x2="490" y2="90" stroke="#fff" stroke-width=".5" opacity=".25"/></svg>`,
+lighthouse:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lhs" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2438"/><stop offset="100%" stop-color="#0a1820"/></linearGradient><linearGradient id="lhse" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a3848"/><stop offset="100%" stop-color="#0a1018"/></linearGradient></defs><rect width="600" height="200" fill="url(#lhs)"/><rect y="200" width="600" height="80" fill="url(#lhse)"/><ellipse cx="120" cy="50" rx="120" ry="20" fill="#0a0e1a" opacity=".75"/><ellipse cx="450" cy="40" rx="150" ry="22" fill="#0a0e1a" opacity=".7"/><circle cx="250" cy="30" r="1" fill="#fff" opacity=".5"/><circle cx="500" cy="80" r="1" fill="#fff" opacity=".4"/><polygon points="0,200 150,170 270,195 290,200 290,280 0,280" fill="#000"/><rect x="270" y="100" width="40" height="100" fill="#3a3848"/><rect x="265" y="200" width="50" height="10" fill="#3a3848"/><rect x="270" y="100" width="40" height="20" fill="#1a1828"/><rect x="280" y="78" width="20" height="22" fill="#1a1828"/><rect x="282" y="80" width="16" height="18" fill="#0a0510"/><rect x="270" y="135" width="40" height="6" fill="#5a3030" opacity=".7"/><rect x="270" y="160" width="40" height="6" fill="#5a3030" opacity=".7"/><rect x="282" y="180" width="16" height="20" fill="#0a0508"/><path d="M 0 215 Q 60 210 120 215 T 240 215 T 360 215 T 480 215 T 600 215 L 600 235 L 0 235 Z" fill="#1a2838" opacity=".7"/><path d="M 0 230 Q 80 225 160 230 T 320 230 T 480 230 T 600 230 L 600 250 L 0 250 Z" fill="#0a1828"/><ellipse cx="100" cy="220" rx="60" ry="6" fill="#aab8c8" opacity=".3"/><ellipse cx="500" cy="225" rx="80" ry="6" fill="#aab8c8" opacity=".3"/><circle cx="290" cy="89" r="4" fill="#3a3030" opacity=".5"/></svg>`,
+cercle:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="ccg" cx=".5" cy=".55"><stop offset="0%" stop-color="#3a3828"/><stop offset="60%" stop-color="#1a1810"/><stop offset="100%" stop-color="#080608"/></radialGradient></defs><rect width="600" height="280" fill="url(#ccg)"/><ellipse cx="300" cy="220" rx="220" ry="40" fill="#0a0805" opacity=".6"/><g fill="#1a1410"><ellipse cx="120" cy="200" rx="22" ry="80"/><ellipse cx="180" cy="195" rx="18" ry="70"/><ellipse cx="245" cy="200" rx="20" ry="78"/><ellipse cx="355" cy="200" rx="20" ry="78"/><ellipse cx="420" cy="195" rx="18" ry="70"/><ellipse cx="480" cy="200" rx="22" ry="80"/></g><g fill="#2a2418" opacity=".7"><circle cx="120" cy="160" r="35"/><circle cx="180" cy="155" r="30"/><circle cx="245" cy="160" r="33"/><circle cx="355" cy="160" r="33"/><circle cx="420" cy="155" r="30"/><circle cx="480" cy="160" r="35"/></g><ellipse cx="300" cy="240" rx="40" ry="10" fill="#1a3a4a" opacity=".7"/><ellipse cx="300" cy="240" rx="25" ry="6" fill="#3a5a7a" opacity=".5"/><circle cx="300" cy="240" r="3" fill="#aac8e8" opacity=".7"/><g stroke="#c9a35a" stroke-width=".4" fill="none" opacity=".5"><path d="M 110 175 L 130 175 M 120 165 L 120 185"/><path d="M 175 170 L 185 175 L 175 180"/><path d="M 240 175 L 250 170 L 250 180 L 240 175"/><path d="M 350 170 L 360 180 M 360 170 L 350 180"/><path d="M 415 175 L 425 175"/><path d="M 470 175 L 490 175 M 480 165 L 480 185"/></g><line x1="300" y1="0" x2="300" y2="240" stroke="#e8c878" stroke-width=".3" opacity=".25"/></svg>`,
+mine:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="mng" cx=".5" cy=".4"><stop offset="0%" stop-color="#3a2818"/><stop offset="50%" stop-color="#1a1008"/><stop offset="100%" stop-color="#000"/></radialGradient><radialGradient id="mnl"><stop offset="0%" stop-color="rgba(255,180,90,.7)"/><stop offset="100%" stop-color="rgba(255,180,90,0)"/></radialGradient></defs><rect width="600" height="280" fill="#0a0610"/><polygon points="0,30 600,30 600,280 0,280" fill="#1a1410"/><polygon points="0,30 200,80 400,50 600,90 600,180 0,180" fill="#0a0808"/><ellipse cx="300" cy="160" rx="180" ry="120" fill="url(#mng)"/><polygon points="180,80 200,250 400,250 420,80 410,75 200,80" fill="#000"/><polygon points="200,90 220,250 380,250 400,90 200,90" fill="#0a0608"/><ellipse cx="300" cy="180" rx="80" ry="60" fill="url(#mnl)"/><circle cx="285" cy="200" r="2.5" fill="#ffb45a" opacity=".95"/><circle cx="285" cy="200" r="6" fill="#ffb45a" opacity=".4"/><rect x="295" y="190" width="3" height="20" fill="#1a1410"/><ellipse cx="300" cy="220" rx="20" ry="6" fill="#0a0608"/><polygon points="290,205 290,220 310,220 310,205" fill="#2a2018"/><circle cx="298" cy="195" r="3" fill="#c9a35a" opacity=".7"/><line x1="220" y1="100" x2="220" y2="250" stroke="#3a2820" stroke-width="1.5"/><line x1="380" y1="100" x2="380" y2="250" stroke="#3a2820" stroke-width="1.5"/><line x1="220" y1="100" x2="380" y2="100" stroke="#3a2820" stroke-width="1.5"/><circle cx="100" cy="80" r="1" fill="#fff" opacity=".4"/><circle cx="500" cy="60" r="1.2" fill="#fff" opacity=".5"/></svg>`,
+ile:`<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ils" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2840"/><stop offset="100%" stop-color="#0a1828"/></linearGradient><linearGradient id="ilse" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a3a4a"/><stop offset="100%" stop-color="#0a1818"/></linearGradient></defs><rect width="600" height="170" fill="url(#ils)"/><rect y="170" width="600" height="110" fill="url(#ilse)"/><circle cx="80" cy="50" r="1" fill="#fff" opacity=".5"/><circle cx="350" cy="40" r="1.5" fill="#fff" opacity=".7"/><circle cx="500" cy="60" r="1" fill="#fff" opacity=".5"/><path d="M 0 175 Q 60 170 120 175 T 240 175 T 360 175 T 480 175 T 600 175 L 600 195 L 0 195 Z" fill="#1a2838" opacity=".7"/><path d="M 0 195 Q 80 190 160 195 T 320 195 T 480 195 T 600 195 L 600 215 L 0 215 Z" fill="#0a1828"/><ellipse cx="300" cy="200" rx="200" ry="20" fill="#3a3020" opacity=".75"/><ellipse cx="300" cy="195" rx="120" ry="14" fill="#5a4830" opacity=".85"/><ellipse cx="300" cy="190" rx="80" ry="10" fill="#7a6040"/><polygon points="270,185 280,165 290,180 300,160 310,178 320,168 330,185" fill="#1a2810" opacity=".85"/><polygon points="280,180 285,170 290,178" fill="#2a3818"/><polygon points="310,180 315,165 320,178" fill="#2a3818"/><rect x="290" y="170" width="14" height="18" fill="#3a2818"/><polygon points="285,170 297,158 309,170" fill="#2a1810"/><circle cx="290" cy="180" r="1" fill="#ffb45a" opacity=".9"/><circle cx="290" cy="180" r="2.5" fill="#ffb45a" opacity=".4"/><g fill="#fff" opacity=".7"><polygon points="120,80 130,75 140,80 130,85"/><polygon points="200,60 207,57 214,60 207,63"/><polygon points="450,90 458,86 466,90 458,94"/><polygon points="520,70 527,67 534,70 527,73"/></g><ellipse cx="100" cy="220" rx="50" ry="5" fill="#aab8c8" opacity=".25"/><ellipse cx="500" cy="225" rx="60" ry="5" fill="#aab8c8" opacity=".25"/></svg>`,
+};
+
+// ====== STORY ======
+const STORY = {
+  start:{title:"L'Aube de Brumevale",illu:"village",
+    text:`<p>Avant l'aube. Maître Aldric secoue ton épaule. Sa main tremble. <em>« Lève-toi, {name}. Doucement. Ne réveille pas Selene. »</em></p><p>Tu glisses un regard dans la chambre voisine. Selene dort, son chat roux contre sa hanche. Depuis l'hiver dernier, ses jambes ne la portent plus. Tu lui as juré, l'an passé, de chanter une chanson au sommet de la Tour des Étoiles, un jour. Elle avait ri en disant que tu serais trop vieux d'ici là.</p><p>Aldric te tend un parchemin scellé et une bague d'argent. Il a les yeux secs des gens qui ne pleurent plus. <em>« La brume a franchi la rivière cette nuit. C'était à mon tour de monter à la Tour. Je suis trop vieux. Si tu n'arrives pas avant la nouvelle lune, Selene sera la première qu'elle prendra. »</em></p><p>Tu te penches sur Selene. Tu prends sa plume préférée — celle avec laquelle elle dessine des oiseaux qu'elle ne verra jamais voler. <em>« Pour la chanson au sommet »</em>, tu murmures.</p><p>Elle entrouvre les yeux une seconde. Sa main cherche la tienne sans regarder. <em>« Tu reviens ? »</em> demande-t-elle, à demi rêvée. Tu hoches la tête. <em>« Et tu chanteras haut ? Pour que je t'entende ? »</em> Tu hoches encore. Elle sourit, déjà retombée dans son sommeil. Sa main lâche la tienne lentement.</p><p>Devant la porte, dans la brume du matin, une silhouette encapuchonnée s'éloigne déjà sur le sentier. Tu n'y prêtes pas vraiment attention. La lune nouvelle est dans trois jours. Trois sentiers s'ouvrent devant toi.</p>`,
+    onEnter:{add:["Parchemin scellé","Bague d'argent","Plume de Selene"]},
+    choices:[
+      {text:"🌲 Prendre la Forêt des Murmures (le plus court, mais hanté)",next:"forest1"},
+      {text:"⛰️ Traverser les Cols Brisés (escarpé, mais direct)",next:"mountain1"},
+      {text:"🌊 Longer la Côte des Naufragés (long, mais à l'écart)",next:"coast1"}
+    ]},
+
+  forest1:{title:"La Forêt des Murmures",illu:"forest",
+    text:`<p>Sous la canopée, la lumière prend une teinte d'argent. Les arbres semblent murmurer ton nom à chaque pas. Tu avances, le cœur cogne contre tes côtes.</p><p>Soudain, sur le sentier : une biche aux yeux d'argent. Elle ne te regarde pas vraiment, en fait. Elle regarde <em>derrière</em> toi. Tu te retournes — il n'y a personne. La forêt est silencieuse. Quand tu te retournes à nouveau vers elle, elle t'observe enfin. Elle attend quelque chose de toi.</p>`,
+    choices:[
+      {text:"Lui parler doucement, comme à une amie",next:"forest2",fx:{sag:1,coe:1,tic:1,add:["Charme de la biche"]},flavor:"La biche s'incline et te touche le front du museau. Une chaleur étrange t'envahit, et tu sais que la forêt te protégera. Quand tu te relèves, le soleil a déjà tourné — tu n'avais pas vu le temps passer."},
+      {text:"Passer en silence, sans la déranger",next:"forest2",fx:{ast:1,coe:-1},flavor:"Tu retiens ton souffle. La biche ne bouge pas. Tu la contournes lentement, et elle disparaît dans la brume. Ses yeux te poursuivent un peu — tu n'as pas tendu la main, et tu le sens."},
+      {text:"Sortir ta dague pour la chasser du chemin",next:"forest2",fx:{sag:-1,coe:-1},flavor:"La biche fuit. Mais quelque chose dans la forêt change, et les murmures deviennent plus sombres. Tu sens un poids sur tes épaules."},
+      {text:"🌳 Faire un détour par le Cercle des Hêtres",next:"cercle",tags:{detour:true}}
+    ]},
+
+  mountain1:{title:"Les Cols Brisés",illu:"mountain",
+    text:`<p>Le vent hurle dans les cols. Tes mains gercent contre la pierre. À mi-chemin, un éboulis bloque la voie — et sur un promontoire, un vieux mercenaire balafré te toise, sa hache à la main.</p><p>Il marque une pause, te détaille longuement. <em>« Tu sens la cire d'abeille. Aldric. »</em> Il rit sec. <em>« J'ai été comme toi, gamin. Il y a vingt ans. Ne me parle pas du serment. »</em></p><p><em>« Le passage coûte cher, voyageur. Ta bague d'argent... ou ton sang. Et choisis vite — tu n'es pas le premier cette semaine. L'autre n'a rien payé. Il marchait comme s'il ne sentait pas le froid. Bizarre, l'autre. »</em></p>`,
+    choices:[
+      {text:"Lui donner la bague et passer en paix",next:"mountain2",fx:{sag:1,rem:["Bague d'argent"]},flavor:"Il empoche la bague avec un grognement amer. « La bague de Méréna. Aldric a fini par la sortir. Vieille femme méchante, notre mère. » Il te regarde. « Va, gamin. Tu mourras quand même, mais en paix. »"},
+      {text:"Le défier au combat",dynamic:"mercenary_fight",tags:{req:"cou"}},
+      {text:"Le contourner par les rochers, en silence",dynamic:"mountain_contour",tags:{req:"ast"}},
+      {text:"⛏ Faire un détour par la Mine de Sagesse",next:"mine",tags:{detour:true}}
+    ]},
+
+  coast1:{title:"La Côte des Naufragés",illu:"coast",
+    text:`<p>L'odeur du sel. Le cri des mouettes. Sur la grève noire, les restes brisés d'un navire — un navire de la Tour des Étoiles, tu le reconnais aux étoiles peintes sur la coque éclatée. Trois marins à demi-morts t'aperçoivent et te tendent la main en gémissant.</p><p>L'orage gronde au large. Si tu t'arrêtes, tu perds une demi-journée — et la lune nouvelle approche. L'un des marins murmure : <em>« On revenait de la Tour... on portait... »</em> avant de tousser du sang.</p>`,
+    choices:[
+      {text:"Les sauver, coûte que coûte",next:"coast2",fx:{coe:2,sag:1,tic:1,add:["Coquillage du marin"]},flavor:"Tu travailles jusqu'à l'épuisement. En les soignant, tu apprends qu'ils revenaient de la Tour avec ce qui restait de la dernière Veilleuse — celle d'avant Aldric. « On l'a perdue avec lui, en mer, dans la tempête, » murmure le plus jeune. Il te glisse un coquillage poli dans la paume. « Pour la chance. Tu en auras besoin. » Le soir tombe. Tu as perdu plusieurs heures, mais tu es plus calme qu'avant."},
+      {text:"Prendre quelques vivres dans l'épave et continuer",dynamic:"coast_loot",tags:{req:"ast"}},
+      {text:"Continuer ta route sans t'arrêter",next:"coast2",fx:{coe:-2,cou:-1,flag:"abandoned_marins"},flavor:"Tu détournes les yeux. Tu marches. Le vent porte leurs voix longtemps après que tu aies dépassé la dernière dune. Tu reconnais, tardivement, le pavillon : un navire de la Tour. Tu n'as pas voulu savoir."},
+      {text:"🐚 Faire un détour par l'Île aux Mouettes",next:"ile",tags:{detour:true}}
+    ]},
+
+  forest2:{title:"La Clairière de la Vieille",illu:"forest_pond",
+    text:`<p>Plus loin dans les bois, la forêt s'éclaircit en une clairière au cœur silencieux. Au bord d'un étang noir, une vieille femme tisse à partir d'un fil d'argent qui semble venir de nulle part. Sa cabane penche derrière elle. Sur le pas de la porte, un chat noir te regarde — il a les yeux exactement de la même couleur que ceux de la biche.</p><p><em>« Mon petit frère t'a envoyé. Je sens la cire d'abeille sur tes mains. Aldric. Il pense toujours qu'il sait mieux. »</em> Elle ne lève pas les yeux de son ouvrage.</p><p><em>« Combien de jeunes gens il a déjà envoyés à la Tour, dis-moi ? »</em></p>`,
+    choices:[
+      {text:"🦌 Lui montrer le Charme de la biche",next:"inn1",req:{item:"Charme de la biche"},tags:{req:"sag"},fx:{sag:2,coe:1,tic:1,add:["Anneau d'écorce"]},flavor:"Elle lève enfin les yeux. Elle sourit comme on sourit à un petit-enfant. « La biche t'a accepté. Bien. Elle est ma sœur, elle aussi, à sa manière. Tu portes donc l'odeur de mon frère ET la bénédiction de l'autre côté. » Elle te tend un anneau d'écorce vivant. « Plante-le où finit toute chose. Tu sauras quand. Et embrasse Selene de ma part — elle ne sait pas que je suis sa tante. » Vous avez parlé longtemps. Le ciel a viré au cuivre."},
+      {text:"⚡ Confier le Charme au chat noir (sans entrer dans la clairière)",next:"inn1",req:{item:"Charme de la biche"},fx:{rem:["Charme de la biche"],add:["Anneau d'écorce"]},flavor:"Tu n'entres pas dans la clairière. Tu confies le Charme au chat noir qui rôde sur le seuil de la cabane. Il te regarde longuement, puis disparaît en silence vers la Vieille. Quelques minutes plus tard, il revient avec un anneau d'écorce dans la gueule. Tu emportes l'anneau et tu pars vite — sans avoir vu la Vieille, sans avoir entendu ce qu'elle aurait dit de Selene. Le charme de la biche est resté là-bas. La forêt ne te reconnaîtra plus."},
+      {text:"💍 Lui offrir la Bague d'argent en tribut",next:"inn1",req:{item:"Bague d'argent"},fx:{sag:1,coe:1,tic:1,rem:["Bague d'argent"],add:["Anneau d'écorce"]},flavor:"Elle prend la bague entre deux doigts. « La bague de notre mère. Méréna. Une vieille femme méchante. Aldric a fini par la sortir — pour Selene, j'imagine ? » Elle la jette dans l'étang sans regret. « Tiens, prends ceci. Et dis à mon frère, si tu le revois, qu'il aurait dû y aller lui-même. » Sa voix s'attarde longtemps après ses paroles."},
+      {text:"🤐 Soutenir son regard sans répondre",dynamic:"forest_eyes",tags:{req:"cou"}},
+      {text:"↩ Faire demi-tour discrètement",next:"inn1",fx:{ast:1,coe:-1},flavor:"Tu recules en silence. Le chat noir cligne de l'œil, lentement, comme s'il était d'accord. Au loin, tu entends rire — ou peut-être pleurer."}
+    ]},
+
+  mountain2:{title:"Le Sanctuaire Oublié",illu:"shrine",
+    text:`<p>Au-delà du col, le sentier mène à un sanctuaire creusé dans la falaise. Sur la pierre noire de l'autel, des noms sont gravés en spirale, lentement, par siècles. Tu reconnais celui d'Aldric — barré d'un trait de couteau, comme rayé du registre. À côté, une place vide qui attend la suivante.</p><p>Une statue brisée d'un dieu sans nom veille sur des offrandes oubliées. Une bougie unique, miraculeusement, brûle encore. Le vent sonne dans la pierre comme une cloche lointaine.</p>`,
+    choices:[
+      {text:"🕯️ Allumer une autre bougie en mémoire des morts",next:"inn1",fx:{coe:1,sag:1,tic:1,add:["Bénédiction de Pierre"]},flavor:"Tu prends une bougie neuve dans le panier d'offrandes, tu l'allumes à la flamme survivante. Tu sens cent mains se poser sur tes épaules — tous ceux qui ont monté avant toi, et qui ne sont jamais redescendus. Une bénédiction tient dans ta poche, désormais. La nuit tombe sans que tu t'en aperçoives."},
+      {text:"⚡ Déposer la Hache du mercenaire en offrande",next:"inn1",req:{item:"Hache du mercenaire"},fx:{rem:["Hache du mercenaire"],add:["Bénédiction de Pierre"]},flavor:"Tu déposes la Hache au pied de la statue brisée. Pas de cérémonie, pas de chant, pas de bougie. Juste un don. La pierre frémit — la Bénédiction te touche aussitôt, avec un peu plus de tristesse que d'habitude. Tu reprends le chemin sans avoir veillé. La Hache reste là, posée comme une promesse rendue. Tu n'auras plus jamais à choisir de la lever."},
+      {text:"💰 Voler les pièces d'argent qui jonchent l'autel",next:"inn1",fx:{ast:1,coe:-2,sag:-1,add:["Pièces volées"]},flavor:"Tu balaies les pièces dans ta paume. Sur l'une d'elles, le profil d'Aldric jeune. Il a été honoré ici, dans une autre vie. Tu pars vite, sans regarder en arrière. La bougie unique vacille. Quelque chose en toi, aussi."},
+      {text:"🙏 Prononcer à voix haute le nom d'un mort que tu as connu",next:"inn1",req:{stat:"sag",min:4},tags:{req:"sag"},fx:{sag:2,cou:1,tic:1,add:["Bénédiction de Pierre","Vœu Tenu"]},flavor:"Tu dis le nom d'un Veilleur qu'Aldric t'avait raconté un soir près du feu. La pierre frémit. Pour un instant, le sanctuaire entier est plein — d'une foule invisible, attentive, reconnaissante. Tu sors les yeux humides, et plus fort qu'avant. La cérémonie a duré plus longtemps que tu n'aurais cru."},
+      {text:"🚶 Continuer ton chemin sans entrer",next:"inn1",fx:{cou:1,sag:-1},flavor:"Tu passes ton chemin. Le vent dans les pierres ne te suit pas longtemps. Quelque chose que tu n'as pas appris ne t'apprendra jamais."}
+    ]},
+
+  coast2:{title:"Le Phare Éteint",illu:"lighthouse",
+    text:`<p>Le sentier longe la falaise, tordu par le vent. Tu arrives au pied d'un phare dont le feu s'est éteint depuis l'an dernier. Sa porte de fer bat sans s'arrêter.</p><p>La Veilleuse qui le tenait — celle qui s'allumait sur toutes les côtes du royaume — est partie en mer pour récupérer ce qu'elle pouvait du dernier Veilleur, son frère. Elle n'est jamais revenue. Sa lampe attend, là-haut.</p><p>Tu sens, en levant les yeux vers la lanterne morte, que si quelqu'un la rallumait, peut-être les noyés cesseraient de hurler dans la brume.</p>`,
+    choices:[
+      {text:"🐚 Grimper et rallumer la lanterne (avec le coquillage)",next:"inn1",req:{item:"Coquillage du marin"},fx:{sag:1,coe:2,tic:1,add:["Lanterne du Veilleur"]},flavor:"Le coquillage te brûle la paume — pas physiquement, autre chose. Tu comprends en montant. C'est le coquillage de la Veilleuse. Le marin l'avait gardé, pour celui qui viendrait. Le feu prend du premier coup. Tu redescends la lanterne entre les bras, et un calme nouveau dans la poitrine. La nuit est tombée pendant l'ascension."},
+      {text:"⚡ Brûler le Coquillage dans le mécanisme rouillé",next:"inn1",req:{item:"Coquillage du marin"},fx:{rem:["Coquillage du marin"],add:["Lanterne du Veilleur"]},flavor:"Tu jettes le coquillage dans le foyer du phare. Il s'embrase d'un coup, court-circuitant le mécanisme. La lanterne s'allume aussitôt — bien plus vite que si tu avais grimpé. Tu redescends sans avoir vu la lampe de près, sans avoir lu le mot gravé sur la fenêtre. Le coquillage, qui était ton lien à la Veilleuse morte, n'est plus. Quelque chose vient de se fermer en toi."},
+      {text:"🧠 Forcer le mécanisme rouillé par la ruse",next:"inn1",req:{stat:"ast",min:4},tags:{req:"ast"},fx:{ast:1,coe:1,tic:1,add:["Lanterne du Veilleur"]},flavor:"Tu démontes la lampe pierre par pierre. Tes doigts se brûlent, mais tu comprends. Le feu prend, fragile mais vivant. Sur le rebord de la fenêtre, gravé au couteau : « Pour mon frère, qui n'est pas revenu. » Tu emportes la lanterne, et un nœud dans la gorge. Ce travail t'a pris plus longtemps que tu ne l'avais imaginé."},
+      {text:"🛌 Te reposer dans le phare sans monter",next:"inn1",fx:{ast:1,tic:1},flavor:"Tu dors d'un sommeil lourd, bercé par le vent. Tu rêves d'une femme qui te tend une lampe que tu ne sais pas attraper. Au matin, tu reprends la route, plus reposé que tu ne le mérites peut-être. Mais une journée entière a passé."},
+      {text:"🚶 Passer sans t'arrêter",next:"inn1",fx:{cou:1,sag:-1},flavor:"Tu n'as pas le temps. La lune nouvelle approche. Le phare reste éteint dans ton dos, et tu marches vite pour ne pas l'entendre. Quelque chose qu'il aurait pu t'apprendre s'éteint avec lui."}
+    ]},
+
+  inn1:{title:"L'Auberge du Loup d'Argent",illu:"inn",
+    text:`<p>Le crépuscule du second jour. L'auberge du Loup d'Argent émerge de la brume comme un mirage chaud. Tu pousses la porte. La salle commune est déserte, sauf une seule âme : un voyageur encapuchonné, devant deux coupes de vin chaud.</p><p>Il lève la tête. Ses yeux sont d'un gris très pâle, presque transparent. Tu jurerais l'avoir vu ce matin, en partant. Et avant-hier aussi, à la lisière des bois.</p><p><em>« Je t'attendais, {name}. Une coupe ? »</em></p>`,
+    choices:[
+      {text:"Accepter et lui faire confiance",next:"lyr_walk",fx:{coe:1,ast:-1,add:["Compagnon : Lyr le Voyageur"]},flavor:"Le vin a un goût d'épices oubliées. Tu remarques, presque par accident, que Lyr ne touche pas à la sienne. « Je ne bois plus depuis longtemps, » dit-il avec un sourire qu'il a dû travailler. « Mauvaise habitude. » Tu n'y prêtes pas attention. Au matin, il est à tes côtés. Quelque chose en toi a baissé la garde."},
+      {text:"Refuser poliment et garder tes distances",next:"river1",fx:{ast:1,coe:-1},flavor:"Tu t'assieds à l'autre bout de la salle. Lyr ne semble pas surpris. « On s'est croisés ce matin, je crois, » dit-il à mi-voix sans se retourner. « Et hier dans les bois. Et avant-hier sur la grève. Je suis patient. » Au matin, l'inconnu n'est plus là. La coupe est encore pleine, et la chandelle, intacte. Tu as dormi seul, et seul tu repars."},
+      {text:"Lui poser une devinette pour le sonder",next:"river1",fx:{sag:2,tic:1},flavor:"Tu lui demandes : « Qu'est-ce qui voyage sans bouger, et meurt si on le tient ? » Il sourit lentement. « Une promesse, jeune scribe. Comme celle d'Aldric à toi. Aldric ne t'a pas tout dit, sais-tu. Il ne pouvait pas. Mais marche un peu avec moi, et je te raconterai ce qu'il taisait. » Vous parlez jusqu'à l'aube. Tu en sais plus, mais le matin t'a rattrapé sans pitié."}
+    ]},
+
+  river1:{title:"La Rivière des Cendres",illu:"ash_river",
+    text:`<p>Au sortir de l'auberge, le sentier descend dans une vallée étouffée de brume noire. Au fond, une rivière coule — mais ce n'est pas de l'eau. C'est de la cendre liquide, fumante, qui charrie des braises rouges comme des yeux ouverts.</p><p>Au-delà, la silhouette de la Tour des Étoiles se dresse contre le ciel pâle. Tu penses à Selene — son lit, son chat, la plume entre tes doigts. Tu dois traverser. Ou renoncer.</p><p>Quelque chose dans l'air te le souffle : ce que tu emporteras pour traverser ne te suivra peut-être pas plus loin.</p>`,
+    choices:[
+      {text:"🌊 Traverser à la nage à mains nues",dynamic:"swim",tags:{req:"cou"}},
+      {text:"⛵ Voler une barque aux pêcheurs spectraux",next:"guardian",req:{stat:"ast",min:4},tags:{req:"ast"},fx:{ast:1,tic:1},flavor:"Tu te glisses entre les roseaux noirs. Une barque mal amarrée, un coup de rame habile, et tu es sur l'autre rive avant que les pêcheurs spectraux n'aient compris. La ruse t'a fait perdre du temps précieux."},
+      {text:"⚡ Sacrifier l'Anneau d'écorce pour faire pousser un pont",next:"guardian",req:{item:"Anneau d'écorce"},fx:{rem:["Anneau d'écorce"]},flavor:"Tu plantes l'Anneau d'écorce dans la rive de cendre. Il prend racine en un instant. Une racine vivante pousse en direction de l'autre rive, fragile mais traversable. Tu cours dessus, sans regarder en bas. Sur l'autre rive, tu te retournes — l'anneau a brûlé, le pont s'est effondré dans la cendre. Il ne poussera plus jamais ailleurs. La forêt vient de perdre sa branche d'avenir."},
+      {text:"💰 Soudoyer les pêcheurs spectraux avec les Pièces volées",next:"guardian",req:{item:"Pièces volées"},fx:{rem:["Pièces volées"],coe:-1},flavor:"Tu jettes les pièces dans la cendre. Les pêcheurs spectraux les ramassent un à un, sans te regarder. Le plus vieux d'entre eux te tend une perche — pas un mot. Tu traverses sec, en marchant sur l'eau-cendre comme si elle était glace. De l'autre côté, tu te retournes : ils sont déjà repartis pêcher. Tu n'es pas sûr d'avoir conclu un bon marché. Mais tu es passé."},
+      {text:"💧 Boire le Verre de Vie pour traverser invulnérable",next:"guardian",req:{item:"Verre de Vie"},fx:{rem:["Verre de Vie"],coe:1},flavor:"Tu débouches la fiole d'eau scintillante. Tu bois. Une chaleur descend dans ta gorge, dans ta poitrine. Tu poses le pied sur la cendre — elle est tiède, plus tiède. Tu marches. Ta peau ne brûle pas. Ton souffle ne se serre pas. Sur l'autre rive, tu poses la fiole vide, et tu sens, sans savoir comment, que la Vieille vient de te sourire de très loin."},
+      {text:"🦌 Réciter la berceuse de la biche pour calmer la rivière",next:"guardian",req:{item:"Charme de la biche"},fx:{sag:2,rem:["Charme de la biche"]},flavor:"Tu ouvres la bouche. Le chant que la biche t'a soufflé sort tout seul, en mots que tu ne connais pas. La rivière se calme un instant — assez pour traverser à pied sec. Le Charme de la biche se dissout en lumière argentée. Tu sais que tu ne le retrouveras plus."},
+      {text:"🗺 Suivre la Carte du naufragé jusqu'au gué oublié",next:"guardian",req:{item:"Carte du naufragé"},fx:{ast:1,coe:1,rem:["Carte du naufragé"]},flavor:"La Carte du naufragé te guide en aval. Là où elle indique une croix maladroite, un gué de pierres noires affleure — tu n'y aurais jamais pensé seul. Tu traverses sec, en sept pas. La carte se dissout dans la cendre derrière toi."},
+      {text:"👤 Demander à Lyr de te porter sur l'autre rive",next:"guardian",req:{item:"Compagnon : Lyr le Voyageur"},fx:{coe:1,rem:["Compagnon : Lyr le Voyageur"]},flavor:"Lyr te regarde longuement. Puis il sourit, te soulève comme un enfant, et marche dans la cendre comme on marche dans l'herbe. Sur l'autre rive, il te repose. « C'est ici que nos chemins se séparent, ami. La Tour ne veut que toi. » Il tourne le dos. La brume l'avale doucement."},
+      {text:"↩ Faire demi-tour et rentrer chez toi",ending:"renoncement"}
+    ]},
+
+  guardian:{title:"Le Gardien du Seuil",illu:"tower",dynamic:true,
+    intro:`<p>Au pied de la Tour des Étoiles, la nuit de la lune nouvelle. Au-dessus, la voûte céleste tourne lentement. Devant la porte, un gardien de pierre s'éveille en grinçant. Ses yeux brûlent d'une lueur d'ambre.</p><p>« <em>Pour franchir ce seuil, prouve ta valeur. Une question, une seule. Réponds avec ce qui t'a guidé jusqu'ici.</em> »</p>`},
+
+  altar:{title:"L'Autel Brisé",illu:"altar",
+    text:`<p>Au sommet, la salle des étoiles. Au centre, un autel de pierre noire. Au-dessus, le sceau qui retient — non, pas la brume, comprends-tu enfin. Ce qui <em>est</em> dans la brume.</p><p>Le parchemin scellé du Maître Aldric brûle entre tes doigts. Tu romps le sceau. Sur le velin, écrit dans la main tremblante de ton vieux maître :</p><p style="text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05em;color:var(--gold-bright);border-left:1px solid var(--gold);border-right:1px solid var(--gold);padding:1rem 1.5rem;margin:1.2rem auto;max-width:90%">« Au sommet, tu apprendras ce que je n'ai pas pu te dire. Il y a mille ans, le Premier Roi a scellé Celui qui Dévore les Noms dans cette Tour. Le pacte exige un Veilleur tous les mille ans. C'était mon tour. Je suis trop vieux maintenant. Pardonne-moi. Embrasse Selene si tu reviens. — Aldric. »</p><p>Une voix s'élève — la Tour elle-même, ou ce qui dort en elle :</p><p>« <em>Je suis le Premier Veilleur. J'ai donné ma mémoire il y a mille ans pour retenir le Dévoreur. Le sceau s'use. À toi, maintenant. Trois portes : donne ton nom, il sera mangé à ta place. Donne ta mémoire, elle sera mangée à ta place. Donne ton souffle, et il prendra ton souffle au lieu d'avaler le monde. D'autres voies existent, pour qui sait les voir.</em> »</p><p>« <em>Choisis. Selene t'attend, et le temps presse.</em> »</p>`,
+    choices:[
+      {text:"🕊️ Sacrifier ton nom (devenir un héros oublié)",ending:"anonyme"},
+      {text:"🌙 Sacrifier ta mémoire (devenir le nouveau gardien)",ending:"veilleur"},
+      {text:"✨ Sacrifier ton souffle (mourir pour le royaume)",ending:"lumiere"},
+      {text:"🦌 Présenter le Charme de la biche au sceau",ending:"foret",req:{item:"Charme de la biche"},lockHint:"Le Charme de la biche est requis"},
+      {text:"🪓 Briser le sceau d'un coup de hache",ending:"brisure",req:{anyItem:["Hache du mercenaire","Branche-Cœur"]},lockHint:"Une arme lourde est requise"},
+      {text:"👤 Demander à Lyr de prendre ta place",ending:"faux_compagnon",req:{item:"Compagnon : Lyr le Voyageur"},lockHint:"Un compagnon est requis"},
+      {text:"🗝 Truquer le sceau par la ruse",ending:"heretique",req:{stat:"ast",min:6},tags:{req:"ast"},lockHint:"Astuce ≥ 6 requise"},
+      {text:"🌳 Planter l'Anneau d'écorce au pied de l'autel",ending:"arbre_roi",req:{items:["Anneau d'écorce","Charme de la biche"]}},
+      {text:"🪨 Offrir la Bénédiction de Pierre au sceau",ending:"roc_eveille",req:{items:["Bénédiction de Pierre","Vœu Tenu"]}},
+      {text:"🕯️ Tenir la Lanterne du Veilleur au-dessus du sceau",ending:"veilleuse",req:{items:["Lanterne du Veilleur","Coquillage du marin"]}}
+    ]},
+
+  cercle:{title:"Le Cercle des Hêtres",illu:"cercle",
+    text:`<p>Tu quittes le sentier. La forêt épaissit. Au bout d'une heure, les troncs s'écartent — et tu pénètres dans un cercle parfait de hêtres très anciens, dont les racines s'enlacent au sol comme des doigts noués.</p><p>Au centre, une source étroite. Sur l'écorce de chaque arbre, des runes que tu ne sais pas lire mais que ton corps reconnaît. Quelque chose dans ce lieu te dit : <em>tiens-toi droit, ou repars.</em></p><p>Tu bois à la source. La forêt te traverse. Quand tu en ressors, tu marches autrement — la fermeté nouvelle au fond de la poitrine. Le détour t'a coûté quelques heures précieuses, mais tu portes avec toi quelque chose qui ne se brisera pas.</p>`,
+    onEnter:{cou:2,coe:1,tic:1,add:["Branche-Cœur"]},
+    choices:[
+      {text:"Reprendre le sentier de la forêt",next:"forest2",flavor:"Tu retrouves ton chemin avec, dans la main, une branche tordue qui ne devrait pas tenir si bien — et pourtant elle tient."}
+    ]},
+
+  mine:{title:"La Mine de Sagesse",illu:"mine",
+    text:`<p>Tu quittes le col. À flanc de falaise, l'entrée d'une vieille mine effondrée. Une lanterne a brûlé là il n'y a pas si longtemps. Tu entres.</p><p>Au fond de la galerie, un vieil homme aux yeux blancs, assis sur un seau renversé, t'attend comme s'il savait que tu viendrais. <em>« Personne ne descend ici par hasard. Assieds-toi. Je n'ai plus que le temps. »</em></p><p>Il te parle longtemps — des Veilleurs morts, des sceaux qui s'usent, des choses qu'Aldric n'a pas su te dire. Quand tu remontes, le soleil a tourné plus que tu ne l'espérais. Mais ta tête, elle, est plus claire qu'elle ne l'a jamais été.</p>`,
+    onEnter:{sag:2,tic:1},
+    choices:[
+      {text:"Reprendre la route du col",next:"mountain2",flavor:"Tu sors. La lumière du jour t'éblouit. Tu n'oublieras pas ce vieillard."}
+    ]},
+
+  lyr_walk:{title:"Sur la route de la rivière",illu:"forest",
+    text:`<p>Le matin est gris. Lyr marche à tes côtés sans effort, ton sac sur son épaule. Il ne pose pas de questions. Tu en as quelques-unes.</p><p><em>« Aldric a été comme toi, autrefois, »</em> dit-il sans regarder devant lui. <em>« Jeune. Pressé. Convaincu qu'on lui avait confié quelque chose qui le dépassait. Il avait raison, d'ailleurs. »</em></p><p>Il marque un temps. <em>« Il y a mille ans, j'ai passé un pacte avec un homme qui voulait sauver son village. Il a réussi. Le village existe toujours. Il s'appelle Brumevale. »</em> Il sourit, distant. <em>« Mais ce n'est pas de ça que je voulais te parler. »</em></p>`,
+    choices:[
+      {text:"« Tu sais des choses qu'Aldric ignore. »",next:"river1",fx:{sag:2},flavor:"Il rit doucement. « Aldric sait beaucoup. Mais il y a deux ou trois choses qu'il a préféré oublier. Pour vivre. » Il te regarde, juste un instant, et tu vois — vraiment — la couleur de ses yeux. « Ne deviens pas comme lui, jeune scribe. Garde-toi de l'oubli choisi. »"},
+      {text:"« Pourquoi marches-tu avec moi ? »",next:"river1",fx:{coe:1,ast:-1},flavor:"Lyr regarde la brume devant vous. « Parce que je n'ai jamais fini ce que j'avais commencé. Et parce que tu portes la plume d'une enfant. Cela me rappelle quelqu'un. » Il ne précise pas qui. Tu n'oses pas demander."},
+      {text:"Marcher en silence",next:"river1",fx:{ast:1},flavor:"Vous marchez longtemps sans parler. Le silence est dense, mais pas hostile. Quelque part, tu sais que tu apprendras plus en n'écoutant pas qu'en posant des questions. Mais tu ne sais pas encore quoi."}
+    ]},
+
+  ile:{title:"L'Île aux Mouettes",illu:"ile",
+    text:`<p>Tu quittes la grève. À marée basse, un banc de sable mène à une petite île que tu n'avais pas remarquée. Là, dans une cabane bricolée, un naufragé survit depuis des années. Il rit en te voyant.</p><p><em>« Tu n'es pas le premier à te perdre par ici, gamin. Mais tu es le premier en bonne santé. Assieds-toi. »</em></p><p>Il t'apprend trois nœuds, deux ruses, et un gué que personne ne connaît plus. Il te donne sa carte — barbouillée d'eau salée, mais lisible. <em>« Pour la rivière, plus loin. Tu en auras besoin. »</em></p><p>Au moment de partir, il s'arrête, comme si quelque chose lui revenait. <em>« J'ai rêvé d'une enfant rousse, l'autre nuit. Elle dessinait des oiseaux qu'elle ne pouvait pas voir voler. Elle m'a demandé de te dire de chanter haut. »</em> Il te regarde, soudain très lucide. <em>« Va vite. »</em></p>`,
+    onEnter:{ast:2,cou:1,tic:1,add:["Carte du naufragé"]},
+    choices:[
+      {text:"Reprendre le sentier de la côte",next:"coast2",flavor:"Tu rejoins le sentier. Le naufragé te fait un signe de loin, immobile. Tu ne sais pas si tu le reverras. Mais sa phrase sur Selene continue à battre dans ta poitrine."}
+    ]}
+};
+
+// Guardian dynamic question — chosen by deeds, not by stats
+const GUARDIAN_Q = {
+  theft:{q:"« <em>Tu portes des pièces qui ne sont pas les tiennes, voyageur. Pourquoi ?</em> »",choices:[
+    {text:"« J'avais besoin. Je l'admets. »",next:"altar",fx:{sag:1,coe:1},flavor:"Le gardien hoche lentement la tête. « L'aveu vaut mieux que le vol. Entre. »"},
+    {text:"« Personne ne s'en souviendra. »",next:"altar",fx:{coe:-2},flavor:"Le gardien dit : « La pierre se souvient. Toujours. Entre quand même — la Tour t'attend. »"},
+    {text:"« Ce n'est pas un vol. C'est une dette. »",next:"altar",fx:{ast:1,coe:-1},flavor:"Le gardien rit, sans joie. « Tu te racontes bien des histoires, ombre. Entre. »"}
+  ]},
+  abandoned:{q:"« <em>Trois voix t'ont appelé sur la grève. Tu n'as pas répondu. Pourquoi ?</em> »",choices:[
+    {text:"« Le temps me poussait. »",next:"altar",fx:{cou:-1,sag:1},flavor:"Le gardien dit : « Le temps pousse tout le monde. Peu de gens s'en servent comme excuse jusqu'au bout. Entre. »"},
+    {text:"« Je ne les ai pas entendues. »",next:"altar",fx:{coe:-2},flavor:"Le gardien grince. « Tu mens. Tu les as entendues. La Tour aussi. Entre — et porte ce mensonge avec toi. »"},
+    {text:"« Je sais. Je vivrai avec. »",next:"altar",fx:{cou:1,coe:1},flavor:"Le gardien s'incline à peine. « Voilà la seule réponse honnête. Entre. »"}
+  ]},
+  selene:{q:"« <em>Tu portes la plume d'une enfant qui ne marche plus. Pourquoi ici ?</em> »",choices:[
+    {text:"« Parce que je lui ai promis une chanson au sommet. »",next:"altar",fx:{cou:1,coe:1},flavor:"Le gardien sourit, presque humain un instant. « Une promesse d'enfant tient parfois mieux que des serments de roi. Entre. »"},
+    {text:"« Parce que j'avais peur de la laisser seule en bas. »",next:"altar",fx:{sag:1,coe:1},flavor:"Le gardien hoche la tête lentement. « La peur partagée est déjà un peu d'amour. Entre. »"},
+    {text:"« Je ne sais pas pourquoi. »",next:"altar",fx:{sag:1,coe:-1},flavor:"Le gardien dit : « C'est peut-être la réponse la plus vraie. Entre — et trouve, là-haut. »"}
+  ]},
+  // Final fallback — only used in the rare case of no Plume, no theft, no abandonment
+  fallback:{q:"« <em>Qu'as-tu été prêt à perdre, voyageur ?</em> »",choices:[
+    {text:"« Tout, si nécessaire. »",next:"altar",fx:{cou:1},flavor:"Le gardien hoche lentement la tête. La porte s'ouvre dans un grondement de pierre."},
+    {text:"« Rien. Je suis venu pour gagner. »",next:"altar",fx:{cou:-1,ast:1},flavor:"Le gardien gronde. « Tu ne sais pas encore ce qui t'attend. » La porte s'ouvre quand même, à contrecœur."},
+    {text:"« Ma vie, mais pas mon honneur. »",next:"altar",fx:{coe:1,cou:1},flavor:"Le gardien laisse échapper un soupir. « Une bonne réponse. Entre, et que les étoiles te jugent. »"}
+  ]}
+};
+
+function pickGuardianQuestion(){
+  if(S.inv.includes("Pièces volées"))return GUARDIAN_Q.theft;
+  if(S.flags.abandoned_marins)return GUARDIAN_Q.abandoned;
+  if(S.inv.includes("Plume de Selene"))return GUARDIAN_Q.selene;
+  return GUARDIAN_Q.fallback;
+}
+
+// ====== ENDINGS ======
+const ENDINGS = {
+  anonyme:{title:"Le Héros Anonyme",text:`<p>Tu prononces ton nom à voix haute, une dernière fois — puis tu le souffles dans le sceau. La fissure se referme dans une lumière dorée. La brume reflue, comme une mer qui se retire.</p><p>Au matin, tu redescends de la tour, et le monde a oublié qui tu étais. Les villageois te saluent comme un étranger. Maître Aldric te regarde sans te reconnaître, mais avec une étrange tendresse.</p><p>Selene, elle, te croise un jour sur la place et te sourit comme à un inconnu. Elle te tend une plume — la sienne — et te demande si tu es musicien. <em>« J'aimerais apprendre une chanson »</em>, dit-elle. <em>« Je crois que je l'ai presque rêvée. »</em> Tu lui apprends. Tu ne sais pas pourquoi tu la connais.</p><p>Plus tard, parfois, quand elle la chante seule à la fenêtre, elle pleure sans comprendre. Toi non plus. Vous ne mettrez jamais de mot sur ce qui manque.</p>`},
+
+  veilleur:{title:"Le Veilleur Éternel",text:`<p>Tu donnes ta mémoire au sceau. Tes souvenirs s'envolent un à un comme des oiseaux : ton enfance, ton maître, le rire de tes amis, le goût du pain de ta mère, le visage d'une enfant aux jambes immobiles dont tu ne sais plus le nom.</p><p>Quand tu rouvres les yeux, tu es seul au sommet de la Tour, et tu sais — sans savoir comment — que c'est ici que tu vivras désormais. Tu deviens le nouveau gardien. La brume ne reviendra pas tant que tes yeux veilleront.</p><p>Une fois par an, environ — tu ne sais pas pourquoi cette nuit-là plutôt qu'une autre — un fragment remonte. Une enfant qui dessine des oiseaux. Une chanson promise. L'image dure une seconde, peut-être deux. Tu pleures sans comprendre. Le matin venu, l'image n'est déjà plus là.</p><p>Tu attends l'année suivante.</p>`},
+
+  lumiere:{title:"La Lumière Brisée",text:`<p>Tu poses ta main sur l'autel et tu donnes ton dernier souffle. Une lumière dorée jaillit du sceau, et l'éclat se voit jusqu'aux côtes. La brume se dissipe en un seul battement, comme effrayée.</p><p>Tu meurs en souriant — tu sais que tout est sauvé. Tu penses à Selene en fermant les yeux.</p><p>Au village de Brumevale, on grave ton nom dans la pierre. Selene apprend ta chanson. Ta plume reste sur sa table de chevet. L'année suivante, ses jambes la portent à nouveau — personne ne sait pourquoi.</p><p>Mais elle ne saura jamais que c'est toi qui as payé. Aldric ne le lui a jamais dit, par respect ou par lâcheté. Elle pense que ses jambes sont un miracle. Elle marche jusqu'à la stèle qui porte ton nom et y dépose des fleurs sans savoir qu'elle les dépose pour <em>toi</em>. Elle chante, doucement, jusqu'au crépuscule. Elle ne pleure pas pour toi parce qu'elle ne sait pas qu'elle le devrait.</p>`},
+
+  foret:{title:"L'Enfant des Bois",text:`<p>Tu sors le Charme de la biche et le tends vers le sceau. Une lumière argentée jaillit. La forêt entière répond — chaque arbre, chaque racine, chaque ombre. Le sceau se referme dans un soupir de mousse et de sève.</p><p>Quand tu rouvres les yeux, tes mains ont des veines de bois clair. Tes pieds touchent à peine la pierre. Tu n'es plus tout à fait humain. La biche d'argent t'attend en bas de la tour. Elle t'appelle <em>« frère »</em>, et tu comprends ce qu'elle dit.</p><p>Selene vient une fois par an, à l'automne. À 14 ans, à 18, à 25, à 40. Elle parle à l'arbre que tu es devenu. Elle ne sait pas que c'est toi, mais elle te parle quand même. Tu écoutes. Tu la regardes vieillir entre tes branches.</p><p>Un automne, elle ne vient pas. Tu attends. L'automne suivant non plus. La biche d'argent finit par se coucher entre tes racines pour ne plus se relever. Et toi tu restes — à veiller un royaume qui ne se souvient plus de personne en particulier. Mille ans peut-être. Les saisons passent. L'éternité, tu apprends, n'est qu'un autre nom pour la solitude qui dure.</p>`},
+
+  brisure:{title:"La Brisure",text:`<p>Tu lèves la hache du mercenaire à deux mains. Tu frappes le sceau. Une fois. Deux fois. Trois fois. La pierre se brise dans une explosion de lumière noire qui te jette à terre.</p><p>La brume disparaît — mais avec elle, tout ce qui retenait les vieilles choses. Les anciens dieux s'éveillent. Les frontières s'effacent. Le royaume devient un lieu sans rois, sans lois, sans cartes.</p><p>Certains te maudissent. D'autres te suivent. Tu marches en tête de quelque chose qui ne porte pas encore de nom.</p><p>Une jeune femme te suit, aussi. Pas la Selene de Brumevale — une autre, ressuscitée d'une couche du monde que tu ne connaissais pas, qui te ressemble en plus dure. Elle t'appelle <em>« frère »</em> mais tu n'es pas tout à fait sûr. Vous ne parlez plus de l'ancienne. Vous avancez. Tu apprends, sans le dire, que casser le cadre, c'est aussi casser ceux qu'on voulait sauver — et qu'il en revient quelque chose à leur place, mais pas vraiment eux.</p>`},
+
+  heretique:{title:"L'Hérétique",text:`<p>Tu souris à l'autel. Tu sors le parchemin du maître. Mais tu sors aussi un autre velin — un faux que tu as recopié toi-même en chemin, sans même savoir pourquoi tu le faisais. Tes doigts savaient avant ton esprit.</p><p>Tu glisses le faux dans le sceau. Le sceau se referme. Il accepte le mensonge — il ne sait pas encore qu'il a été trompé.</p><p>La brume reflue. Tu redescends en sifflant. Pour l'instant, tu as gagné. Tu rentres à Brumevale. Selene est là, intacte. Tu la prends dans tes bras.</p><p>Mais la Tour, elle, sait. Elle connaîtra ton nom, et celui de Selene, et celui de tes enfants si tu en as. Une malédiction patiente, qui prend son temps. On dit que les Hérétiques meurent toujours seuls. Tu espères que ce sera bien des années plus tard.</p>`},
+
+  faux_compagnon:{title:"Le Voyageur Gris",text:`<p>Tu te tournes vers Lyr et lui demandes de prendre ta place. Il te regarde longuement, ses yeux gris pâle un peu plus pâles encore. Puis il rit — un rire long, étrange, presque doux.</p><p>« <em>Tu n'as donc rien compris, {name} ?</em> » dit-il. Sa silhouette s'effrite. Sous le manteau, il n'y a que de la brume — fine, ancienne, patiente. « <em>Je SUIS la brume. Je t'ai suivi depuis le matin. La biche regardait derrière toi parce qu'elle me voyait. Le mercenaire m'avait croisé avant. Les marins m'avaient vu passer. Et tu m'as ouvert toutes les portes.</em> »</p><p>Le sceau cède. La Tour tombe. Tu es le dernier être vivant à voir le ciel se voiler. Tu penses à Selene, dans son lit, son chat contre elle. Tu espères qu'elle dort encore. Tu sais qu'elle ne dort plus.</p>`},
+
+  indigne:{title:"L'Indigne",text:`<p>Tu ne luttes pas. Quelque part, tu le sais : c'est juste. Toutes ces mains que tu n'as pas tendues, tous ces yeux que tu as détournés — la brume les a comptés un à un, et elle vient réclamer son dû.</p><p>Tu fermes les yeux. Tu penses à ceux que tu as laissés derrière toi. Aux marins sur la grève. Aux visages que tu n'as pas voulu voir.</p><p>Quand on retrouve Brumevale, des semaines plus tard, il n'y a plus que de la cendre froide. Pas de héros. Pas de tour. Pas de Selene. Juste une question, gravée dans la pierre du seuil de chaque maison vide : <strong>« Qui ? »</strong></p>`},
+
+  renoncement:{title:"Le Renoncement",text:`<p>Tu fais demi-tour. Tu ne peux pas. C'est trop. La rivière ferme derrière toi comme une porte de fer.</p><p>Tu rentres à Brumevale par les chemins que tu connais — mais Brumevale n'existe plus. La brume a tout pris, y compris la chambre où Selene dormait. Sa plume est dans ta poche. Tu la gardes.</p><p>On te trouvera, bien des années plus tard, dans une auberge oubliée d'un autre royaume, racontant à qui veut l'entendre l'histoire d'une enfant aux jambes immobiles que tu n'as pas su sauver. Tu serres la plume contre toi en parlant. Personne ne te croit. Tu ne te crois plus toi-même.</p>`},
+
+  cendre:{title:"Sous la Cendre",text:`<p>La rivière n'attend personne. Elle te happe en un instant — tes mains se débattent, ta bouche s'ouvre pour crier, mais la cendre y entre la première.</p><p>Tu sombres. C'est rapide. Plus rapide que la peur.</p><p>Au matin, on retrouvera le parchemin scellé du Maître Aldric flottant sur la rive opposée, intact, illisible. À côté, la plume de Selene, elle aussi, flotte un instant — puis quelqu'un d'autre la prend, peut-être. Personne ne sait. La brume couvre le monde.</p>`},
+
+  vain_combat:{title:"Le Vain Combat",text:`<p>Tu lèves ta lame. Lui, il rit doucement. <em>« Tu es le dixième, gamin. »</em> Il a vu trop de jeunes gens lever des lames trop tôt.</p><p>L'acier chante une fois. Pas deux. Tu tombes en arrière dans la pierraille. Le ciel est très bleu, soudain. Très bleu et très vide.</p><p>Le mercenaire fouille tes poches. Il prend la bague — il sait. Il regarde le parchemin scellé sans comprendre, le jette dans le précipice. Puis il trouve la plume de Selene.</p><p>Il s'arrête. Il la regarde longtemps. Il avait une sœur, lui aussi, autrefois. Bien avant Aldric, bien avant le serment, bien avant tout. Il pose la plume à côté de toi avec une douceur qui ne lui ressemble pas. <em>« Pardonne-moi, gamin. »</em> Il s'éloigne en sifflant un air lent. Quelque part dans son crâne, peut-être, il vient de décider quelque chose. Tu ne le sauras pas. Mais ta mort vient peut-être de faire bouger une pierre que rien d'autre n'avait bougée depuis vingt ans.</p>`},
+
+  chute:{title:"La Chute",text:`<p>Tu poses le pied sur un caillou qui n'aurait pas dû glisser. Le précipice te cueille comme une mère.</p><p>Tu tombes longtemps. Plus longtemps qu'on ne tombe normalement. Tu as le temps de penser à Selene — son sourire, ses jambes qui ne marchent plus, la chanson promise. C'est ce visage que tu emportes.</p><p>À Brumevale, cette nuit-là, Selene se réveille en sursaut. Elle a rêvé de toi qui chantes, en haut de quelque chose de très haut. Elle ne se rendormira pas. Au matin, elle dit à Aldric, très calmement : <em>« Il est arrivé en haut. Il a chanté. Je l'ai entendu. »</em></p><p>Aldric ne la corrige pas. Il pose la main sur la sienne. Une fausse nouvelle plus douce que la vraie — c'est avec ça que les survivants tiennent debout. Selene grandira en croyant que tu as tenu ta promesse. Peut-être que c'est même un peu vrai.</p>`},
+
+  arbre_roi:{title:"L'Arbre-Roi",text:`<p>Tu plantes l'Anneau d'écorce au pied de l'autel. Il prend racine en un instant — des veines de bois s'enfoncent dans la pierre noire, et de tes propres pieds, des racines descendent vers le cœur de la Tour.</p><p>Tu deviens un arbre. Puissant, patient, mille bras vers le ciel. Les saisons passent comme des battements de paupière. Tu vois les royaumes monter et tomber, les hommes naître, vieillir, oublier ton nom — et c'est bien, parce que tu te souviens d'eux pour eux.</p><p>La brume ne revient jamais dans une forêt où l'Arbre-Roi monte la garde. Selene apprend à grimper dans tes branches malgré ses jambes — l'arbre la soulève doucement, et elle rit pour la première fois depuis l'hiver. Elle vient chaque automne. Elle parle. Tu écoutes. Personne ne sait pourquoi cet arbre-là, dans cette forêt-là, pousse vers elle.</p>`},
+
+  roc_eveille:{title:"Le Roc Éveillé",text:`<p>Tu prononces de nouveau, à voix basse, le nom du mort que tu portes depuis le sanctuaire. La Bénédiction de Pierre vibre dans ta paume, puis se brise comme un œuf. La montagne entière t'entend.</p><p>Chaque pierre des murs, chaque pavé des routes, chaque caillou au fond des rivières — tout se souvient soudain de quelque chose. Et tu deviens la pierre qui les tient toutes ensemble.</p><p>Tu ne bouges plus. Mais tu es éveillé, et la brume passe sur toi sans te voir. Selene grandit dans une maison dont les murs te connaissent. Quand elle s'endort, elle pose la main contre la pierre du foyer. Quelque chose de chaud lui répond.</p><p>Un soir, vers ses douze ans, elle pose une question à voix haute, le front contre la pierre : <em>« Qui es-tu ? »</em> Tu n'as plus de bouche, plus de nom — juste cette présence chaude. Tu ne peux pas répondre. Elle attend longtemps. Puis elle finit par ne plus poser la question. Elle s'habitue. Et c'est ça, le pire.</p>`},
+
+  veilleuse:{title:"La Veilleuse",text:`<p>Tu lèves la Lanterne du Veilleur au-dessus du sceau. Sa flamme — née du souffle des marins noyés — trouve la fissure et la cautérise dans une lumière dorée et salée.</p><p>Tu deviens la nouvelle Veilleuse. Tu allumes des feux le long des côtes du royaume, sur les tours, dans les phares oubliés. Tu marches sans dormir.</p><p>Au début, c'est pour Selene. Son visage te tient debout. Elle voit, par les nuits sans lune, une étoile bouger sur la côte, et elle agite sa plume vers toi. Tu la vois peut-être, depuis tous tes phares à la fois.</p><p>Puis c'est pour les marins. Quand l'orage les prend en mer, ils prient pour ta lumière, et la lumière vient toujours.</p><p>Cinquante ans plus tard, tu allumes encore. Selene est morte de vieillesse il y a longtemps. Tu ne te souviens plus tout à fait d'elle — juste que <em>quelqu'un</em> t'attendait, autrefois, sur une côte. Le geste a remplacé la raison. Tu allumes parce qu'il faut allumer. C'est devenu ça, ton nom.</p>`},
+
+  trop_tard:{title:"La Lune Trop Tard",text:`<p>Tu atteins le pied de la Tour. La porte est ouverte, déjà. Personne pour t'arrêter. Tu montes les marches, le souffle court, sachant que tu sais.</p><p>En haut, le sceau est intact — pas brisé. Quelqu'un l'a refermé. Mais à côté, sur la pierre noire, une plume blanche, et une mèche de cheveux roux pas tout à fait coupée — arrachée.</p><p>Une voix s'élève, très calme, très jeune.</p><p><em>« Tu es venu trop tard, voyageur. La brume avait faim. Une nouvelle Veilleuse a été choisie sans que tu n'aies à choisir. »</em></p><p>Tu tombes à genoux. Quelque part, dans la Tour, une enfant chante une chanson que tu lui avais promise. Sa voix est calme. Elle ne se souvient déjà plus de toi. Elle ne se souvient plus que d'une mélodie, et de l'idée vague qu'elle l'avait apprise pour quelqu'un.</p><p>Tu redescends. Tu marches. Le royaume vit. Selene veille. Tu n'es plus rien — qu'un homme qui rentre dans une maison qui ne l'attend plus, parce qu'il a voulu trop bien faire en chemin.</p>`},
+};
+
+// ====== STATE & ENGINE ======
+const fresh=()=>({name:"Voyageur",origin:null,stats:{cou:2,sag:2,ast:2,coe:2},inv:[],tics:0,flags:{}});
+let S=fresh();
+const STAT_KEYS={cou:"courage",sag:"sagesse",ast:"astuce",coe:"coeur"};
+const STAT_ICON={cou:"⚔",sag:"📜",ast:"🗝",coe:"❤"};
+function choiceText(c){
+  let t=c.text;
+  if(c.tags&&c.tags.req){
+    t+=' <span class="stat-tag '+c.tags.req+'">'+STAT_ICON[c.tags.req]+'</span>';
+  }
+  return t;
+}
+
+const $=id=>document.getElementById(id);
+const screens={title:$("title-screen"),character:$("character-screen"),game:$("game-screen"),ending:$("ending-screen")};
+
+function show(name){Object.values(screens).forEach(s=>s.classList.remove("active"));screens[name].classList.add("active");window.scrollTo({top:0,behavior:"smooth"});}
+
+$("begin-btn").onclick=()=>show("character");
+
+let selectedOrigin=null;
+const nameInput=$("player-name"),confirmBtn=$("confirm-character");
+document.querySelectorAll(".origin-card").forEach(c=>{c.onclick=()=>{document.querySelectorAll(".origin-card").forEach(x=>x.classList.remove("selected"));c.classList.add("selected");selectedOrigin=c.dataset.origin;updateConfirm();};});
+nameInput.oninput=updateConfirm;
+function updateConfirm(){confirmBtn.disabled=!(nameInput.value.trim()&&selectedOrigin);}
+confirmBtn.onclick=()=>{S.name=nameInput.value.trim()||"Voyageur";S.origin=selectedOrigin;if(selectedOrigin==="lame")S.stats.cou+=2;if(selectedOrigin==="plume")S.stats.sag+=2;if(selectedOrigin==="ombre")S.stats.ast+=2;show("game");updateTime();renderScene("start");};
+
+function applyFx(fx){if(!fx)return;const old={...S.stats};if(fx.cou)S.stats.cou+=fx.cou;if(fx.sag)S.stats.sag+=fx.sag;if(fx.ast)S.stats.ast+=fx.ast;if(fx.coe)S.stats.coe+=fx.coe;if(fx.add)fx.add.forEach(it=>S.inv.push(it));if(fx.rem)fx.rem.forEach(it=>{const i=S.inv.indexOf(it);if(i>=0)S.inv.splice(i,1);});if(fx.tic)S.tics+=fx.tic;if(fx.flag)S.flags[fx.flag]=true;updateStats(old);updateInv();updateTime();}
+function updateTime(){const bar=$("moon-bar"),icon=$("moon-icon"),lbl=$("moon-label");const t=S.tics;let phase,label,cls="";if(t<=1){phase="🌒";label="Jour 1 — la lune décroît";}else if(t<=3){phase="🌓";label="Jour 2 — la brume avance";}else if(t<=5){phase="🌔";label="Jour 3 — il te reste peu";cls="warn";}else{phase="🌑";label="LUNE NOUVELLE — il est trop tard";cls="danger";}icon.textContent=phase;lbl.textContent=label;bar.className="moon-bar"+(cls?" "+cls:"");}
+
+function updateStats(old){Object.keys(S.stats).forEach(k=>{const el=$("stat-"+STAT_KEYS[k]);el.textContent=S.stats[k];if(old&&old[k]!==S.stats[k]){el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),700);}});}
+
+function updateInv(){const el=$("inventory-items");if(!S.inv.length){el.innerHTML='<span class="inventory-empty">— vide —</span>';}else{el.innerHTML=S.inv.map(it=>`<span class="inventory-item">${it}</span>`).join("");}}
+
+function meetsReq(req){if(!req)return true;if(req.item&&!S.inv.includes(req.item))return false;if(req.items)for(const it of req.items)if(!S.inv.includes(it))return false;if(req.anyItem){let h=false;for(const it of req.anyItem)if(S.inv.includes(it)){h=true;break;}if(!h)return false;}if(req.stat&&S.stats[req.stat]<req.min)return false;return true;}
+
+function renderRejection(){
+  $("illustration").innerHTML=ILLU.altar;
+  $("scene-title").textContent="Le Sceau Refuse";
+  $("scene-text").innerHTML='<p>Au sommet, la salle des étoiles. Tu poses la main sur l\'autel — et la pierre se dérobe sous tes doigts comme de l\'eau noire.</p><p>Une voix glacée s\'élève du sceau : « <em>Ton cœur est vide, voyageur. Le sceau ne reconnaît pas les mains qui se sont durcies en chemin. Tu n\'es pas digne.</em> »</p><p>La brume monte par les fissures du sol. Elle te touche les chevilles. Tu n\'as plus de souffle pour crier.</p>';
+  const cEl=$("choices");cEl.innerHTML="";
+  const b=document.createElement("button");
+  b.className="choice-btn";
+  b.style.cssText="text-align:center;color:var(--gold-bright);border-color:var(--gold);border-left-color:var(--gold);font-style:normal;letter-spacing:.15em;text-transform:uppercase;font-family:'Cormorant Unicase',serif;font-size:.95rem";
+  b.textContent="Accepter ton sort";
+  b.onclick=()=>showEnding("indigne");
+  cEl.appendChild(b);
+  updateStats();updateInv();
+}
+
+function renderScene(id){
+  if(id==="altar"&&S.tics>5){return showEnding("trop_tard");}
+  if(id==="altar"&&S.stats.coe<=0){return renderRejection();}
+  let scene=STORY[id],title,text,choices,illu;
+  if(scene.dynamic&&id==="guardian"){
+    const gq=pickGuardianQuestion();
+    title=scene.title;illu=scene.illu;text=scene.intro+"<p>"+gq.q+"</p>";choices=[...gq.choices];
+    if(S.inv.includes("Parchemin scellé")){
+      choices.push({text:"📜 Lui montrer le sceau du parchemin d'Aldric",next:"altar",fx:{sag:1,coe:1},flavor:"Tu sors le parchemin scellé. Le gardien voit le sceau. Sa pierre frémit. <em>« Aldric. Encore lui. Toujours lui. »</em> Il s'incline, plus bas que tu ne l'as vu s'incliner. <em>« Va, porteur. La Tour t'a déjà reconnu. »</em> La porte s'ouvre toute seule, et le parchemin reste cacheté entre tes doigts pour le sommet."});
+    }
+  }else{
+    title=scene.title;illu=scene.illu;text=scene.text;choices=scene.choices;
+    if(scene.onEnter)applyFx(scene.onEnter);
+  }
+  if(id==="altar"){
+    let cb="";
+    if(S.inv.includes("Plume de Selene")){cb+='<p class="altar-callback">✦ La plume de Selene est tiède contre ta poitrine, comme si elle se souvenait de sa main.</p>';cb+='<p class="altar-callback">✦ Sa voix te revient, à demi rêvée : <em>« Et tu chanteras haut ? Pour que je t\'entende ? »</em></p>';}
+    if(S.inv.includes("Charme de la biche"))cb+='<p class="altar-callback">✦ Le Charme de la biche pulse contre ta poitrine, comme s\'il reconnaissait ce lieu.</p>';
+    if(S.inv.includes("Hache du mercenaire"))cb+='<p class="altar-callback">✦ La hache du mercenaire pèse soudain plus lourd à ta ceinture.</p>';
+    if(S.inv.includes("Compagnon : Lyr le Voyageur"))cb+='<p class="altar-callback">✦ Lyr est resté en bas. Mais tu sens son regard sur ta nuque, comme une main posée.</p>';
+    if(S.inv.includes("Anneau d\'écorce"))cb+='<p class="altar-callback">✦ L\'Anneau d\'écorce pulse dans ta poche, comme s\'il sentait la terre vivante quelque part en dessous.</p>';
+    if(S.inv.includes("Bénédiction de Pierre"))cb+='<p class="altar-callback">✦ La Bénédiction de Pierre est lourde — pas physiquement, autre chose. Une présence à tes côtés.</p>';
+    if(S.inv.includes("Lanterne du Veilleur"))cb+='<p class="altar-callback">✦ La Lanterne du Veilleur vacille soudain, comme si elle reconnaissait un foyer ancien.</p>';
+    if(!S.inv.includes("Bague d'argent"))cb+='<p class="altar-callback">✦ Tes doigts cherchent la bague d\'argent — et ne la trouvent plus.</p>';
+    if(S.stats.ast>=7)cb+='<p class="altar-callback">✦ Une idée traverse ton esprit, fine comme une lame. Et si...?</p>';
+    text+=cb;
+  }
+  $("illustration").innerHTML=ILLU[illu]||"";
+  $("scene-title").textContent=title;
+  $("scene-text").innerHTML=text.replace(/\{name\}/g,S.name);
+  const cEl=$("choices");cEl.innerHTML="";
+  choices.filter(c=>meetsReq(c.req)).forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice-btn";
+    b.style.animationDelay=(i*.1)+"s";
+    b.innerHTML=choiceText(c);
+    b.onclick=()=>pickChoice(c);
+    cEl.appendChild(b);
+  });
+  updateStats();updateInv();
+}
+
+function pickChoice(c){
+  if(c.dynamic==="mercenary_fight"){
+    if(S.stats.cou>=3){
+      c={next:"mountain2",fx:{cou:2,coe:-1,add:["Hache du mercenaire"]},flavor:"L'acier chante. C'est dur, brutal, mais tu tiens bon. Le mercenaire tombe à genoux, surpris. Tu prends sa hache. Tu n'oublieras jamais ses yeux."};
+    }else{
+      c={ending:"vain_combat",flavor:"Tu lèves ta lame. Lui, il sourit. Il sait avant toi comment cela va finir."};
+    }
+  }else if(c.dynamic==="mountain_contour"){
+    if(S.stats.ast>=3){
+      c={next:"mountain2",fx:{ast:1,cou:1},flavor:"Tu grimpes le long du précipice, le vent te mord les doigts. Quand tu redescends de l'autre côté, le mercenaire ne s'est aperçu de rien."};
+    }else{
+      c={ending:"chute",flavor:"Tu poses le pied sur un caillou qui n'aurait pas dû glisser. Tu pars en arrière. Tes mains cherchent quelque chose à saisir, mais le vent ne t'aide pas."};
+    }
+  }else if(c.dynamic==="coast_loot"){
+    if(S.stats.ast>=3){
+      c={next:"coast2",fx:{ast:1,coe:-1},flavor:"Tu fouilles vite, sans les regarder. Tu emportes ce qu'il faut. Leurs yeux te suivent jusqu'au sentier. Tu marches plus vite."};
+    }else{
+      c={next:"coast2",fx:{coe:-2,sag:-1},flavor:"Tu fouilles trop lentement. Le plus jeune des marins te saisit le poignet — sans force, mais sans lâcher. Tu pars les mains vides. Tu emportes seulement ta honte."};
+    }
+  }else if(c.dynamic==="forest_eyes"){
+    if(S.stats.cou>=3){
+      c={next:"inn1",fx:{cou:1,sag:1,add:["Verre de Vie"]},flavor:"Tu tiens son regard. Elle finit par baisser les yeux la première — un sourire d'écolière, fugace. « Tu vaux mieux que ce que tu sembles. » Elle te tend une fiole d'eau qui scintille. « Bois quand tu sentiras la fin. »"};
+    }else{
+      c={next:"inn1",fx:{sag:-1,coe:-1},flavor:"Tu tiens son regard une seconde de trop. Quelque chose en toi se brise — petit, mais brise. Elle sourit comme on sourit aux enfants stupides. Tu pars avec une douleur sourde dans la poitrine."};
+    }
+  }else if(c.dynamic==="swim"){
+    if(S.stats.cou<=1){
+      c={ending:"cendre",flavor:"Tu plonges. La cendre te happe en un instant — tes mains se débattent, mais elle entre par ta bouche avant que tu ne puisses crier."};
+    }else if(S.stats.cou>=4){
+      c={next:"guardian",fx:{cou:1},flavor:"Tu plonges. C'est brûlant, suffocant, mais tes bras tiennent. Tu rampes sur la rive opposée, fumant comme un tison, vivant."};
+    }else{
+      const hasBague=S.inv.includes("Bague d'argent");
+      c={next:"guardian",fx:{coe:-1,rem:hasBague?["Bague d'argent"]:[]},flavor:hasBague?"Tu plonges. La cendre te submerge. Tu cries — la bague t'échappe et coule à pic. Tu rampes sur la rive opposée, vivant — mais marqué.":"Tu plonges. La cendre te brûle, te suffoque. Tu rampes sur la rive opposée à bout de forces, plus pâle qu'avant."};
+    }
+  }
+  if(c.fx)applyFx(c.fx);
+  const advance=()=>{if(c.ending)showEnding(c.ending);else if(c.next)renderScene(c.next);};
+  if(c.flavor){
+    $("scene-text").innerHTML='<p class="flavor">'+c.flavor+"</p>";
+    const cEl=$("choices");
+    cEl.innerHTML="";
+    const b=document.createElement("button");
+    b.className="choice-btn";
+    b.style.cssText="text-align:center;font-style:normal;color:var(--gold-bright);border-color:var(--gold);border-left-color:var(--gold);letter-spacing:.15em;text-transform:uppercase;font-family:'Cormorant Unicase',serif;font-size:.95rem";
+    b.textContent="Continuer →";
+    b.onclick=advance;
+    cEl.appendChild(b);
+    cEl.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }else{
+    advance();
+  }
+}
+
+function showEnding(id){
+  const e=ENDINGS[id];
+  $("ending-title").textContent=e.title;
+  $("ending-text").innerHTML=e.text;
+  $("ending-stats").innerHTML=`<div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:1rem;font-family:'Cormorant Unicase'"><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">⚔ COURAGE</div><div style="color:var(--c-cou);font-size:1.5rem">${S.stats.cou}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">📜 SAGESSE</div><div style="color:var(--c-sag);font-size:1.5rem">${S.stats.sag}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">🗝 ASTUCE</div><div style="color:var(--c-ast);font-size:1.5rem">${S.stats.ast}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">❤ CŒUR</div><div style="color:var(--c-coe);font-size:1.5rem">${S.stats.coe}</div></div></div>`;
+  show("ending");
+}
+
+$("restart-btn").onclick=()=>{S=fresh();nameInput.value="";selectedOrigin=null;document.querySelectorAll(".origin-card").forEach(c=>c.classList.remove("selected"));confirmBtn.disabled=true;show("title");};
+
+// Default share URL: edit this if you publish/host elsewhere
+const SHARE_URL_FALLBACK = "https://claude.ai/";
+let cachedShareUrl = null;
+
+function detectShareUrl(){
+  // 1. Try direct location (works if hosted as a normal HTML file)
+  const here = window.location.href.split("#")[0];
+  if(here && !here.startsWith("about:") && !here.startsWith("data:") && !here.startsWith("blob:") && !here.startsWith("javascript:")){
+    return here;
+  }
+  // 2. Try parent location (often blocked by CORS but worth trying)
+  try{
+    if(window.parent && window.parent !== window){
+      const parentUrl = window.parent.location.href;
+      if(parentUrl && /^https?:/.test(parentUrl))return parentUrl.split("#")[0];
+    }
+  }catch(e){/* SecurityError, expected in sandboxed iframes */}
+  // 3. Try document.referrer (sometimes the parent page)
+  if(document.referrer && /^https?:/.test(document.referrer)){
+    const ref = document.referrer.split("#")[0];
+    // Avoid using the chat-conversation URL as the share URL
+    if(!/\/(chat|chats)\//.test(ref))return ref;
+  }
+  return null;
+}
+
+async function getShareUrl(forceAsk){
+  if(cachedShareUrl && !forceAsk)return cachedShareUrl;
+  const auto = detectShareUrl();
+  if(auto && !forceAsk){cachedShareUrl=auto;return auto;}
+  // Prompt user — they can copy the URL from their address bar
+  const entered = window.prompt(
+    "Pour partager le jeu, copie l'URL de cette page depuis la barre d'adresse de ton navigateur et colle-la ici :",
+    auto || ""
+  );
+  if(entered && /^https?:\/\//i.test(entered.trim())){
+    cachedShareUrl = entered.trim().split("#")[0];
+    return cachedShareUrl;
+  }
+  // User cancelled or entered invalid URL — use fallback this time only
+  return SHARE_URL_FALLBACK;
+}
+
+async function buildShareData(forceAsk){
+  const t=$("ending-title").textContent;
+  const url=await getShareUrl(forceAsk);
+  const msg=`J'ai terminé "Le Serment des Cendres" avec la fin "${t}" ! ⚜️\n\n⚔ Courage ${S.stats.cou} · 📜 Sagesse ${S.stats.sag} · 🗝 Astuce ${S.stats.ast} · ❤ Cœur ${S.stats.coe}\n\nÀ toi de jouer : ${url}`;
+  return {title:"Le Serment des Cendres",text:msg,url:url,ending:t};
+}
+
+async function copyText(text){
+  if(navigator.clipboard&&window.isSecureContext){
+    try{await navigator.clipboard.writeText(text);return true;}catch(e){}
+  }
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;ta.style.position="fixed";ta.style.left="-9999px";ta.setAttribute("readonly","");
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,99999);
+    const ok=document.execCommand("copy");document.body.removeChild(ta);
+    return ok;
+  }catch(e){return false;}
+}
+
+function flashBtn(btn,label,duration=2200){
+  const orig=btn.textContent;btn.textContent=label;
+  setTimeout(()=>btn.textContent=orig,duration);
+}
+
+$("share-btn").onclick=async()=>{
+  const b=$("share-btn");
+  const d=await buildShareData();
+  if(navigator.share){
+    try{await navigator.share({title:d.title,text:d.text,url:d.url});return;}
+    catch(e){if(e.name==="AbortError")return;}
+  }
+  if(await copyText(d.text)){flashBtn(b,"✓ Copié dans le presse-papier");return;}
+  window.prompt("Copie ce texte (Ctrl+C / Cmd+C) :",d.text);
+};
+
+document.querySelectorAll(".share-icon-btn").forEach(btn=>{
+  if(btn.id==="edit-url-btn"){
+    btn.onclick=async()=>{
+      await getShareUrl(true);  // force prompt
+      flashBtn(btn,"✓",1200);
+    };
+    return;
+  }
+  btn.onclick=async()=>{
+    const d=await buildShareData();
+    const net=btn.dataset.net;
+    const u=encodeURIComponent(d.url);
+    const txt=encodeURIComponent(d.text);
+    const ttl=encodeURIComponent(`Ma fin : ${d.ending}`);
+    let target;
+    if(net==="wa")target=`https://wa.me/?text=${txt}`;
+    else if(net==="fb")target=`https://www.facebook.com/sharer/sharer.php?u=${u}&quote=${ttl}`;
+    else if(net==="x")target=`https://twitter.com/intent/tweet?text=${txt}`;
+    else if(net==="tg")target=`https://t.me/share/url?url=${u}&text=${ttl}`;
+    else if(net==="link"){
+      if(await copyText(d.url)){flashBtn(btn,"✓",1600);}
+      else{window.prompt("Copie ce lien :",d.url);}
+      return;
+    }
+    if(target)window.open(target,"_blank","noopener,noreferrer,width=600,height=600");
+  };
+});
+</script>
+</body>
+</html>
