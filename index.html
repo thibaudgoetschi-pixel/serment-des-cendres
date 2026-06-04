@@ -111,6 +111,73 @@ button:not(:disabled):active{transform:translateY(1px)}
 .ending-actions{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:2rem}
 @media (max-width:600px){.stats-bar{padding:.6rem .25rem;gap:.25rem}.stat-label{font-size:.55rem;letter-spacing:.12em}.stat-value{font-size:1.2rem}#app{padding:1rem .75rem 3rem}.scene-text{line-height:1.7}.choice-btn{font-size:1rem;padding:.85rem 1rem}button{padding:.8rem 1.2rem;letter-spacing:.15em;font-size:.9rem}}
 </style>
+<!-- GoatCounter analytics — privacy-friendly, no cookies, no banner needed -->
+<script>
+  // Wait until ready, then track. Defined here so the function is available globally.
+  window.gcTrack = function(path, title){
+    try{
+      if(window.goatcounter && window.goatcounter.count){
+        window.goatcounter.count({path: path, title: title || path, event: true});
+      }
+    }catch(e){/* never break the game on a tracking error */}
+  };
+
+  // === Analytics state — engagement, retention, scene flow ===
+  window._gameStartTime = null;
+  window._sceneStartTime = null;
+  window._lastTrackedScene = null;
+  const PLAY_COUNT_KEY = "serment_play_count";
+
+  // Scenes worth tracking (skips intermediate dynamic scenes)
+  const TRACKED_SCENES = ["start","forest1","mountain1","coast1","forest2","mountain2","coast2","cercle","mine","ile","lyr_walk","inn1","river1","guardian","altar"];
+
+  function bucketDuration(seconds){
+    if(seconds<10)return "0-10s";
+    if(seconds<30)return "10-30s";
+    if(seconds<90)return "30-90s";
+    if(seconds<300)return "90-300s";
+    return "300s+";
+  }
+
+  function bucketTotalTime(seconds){
+    if(seconds<60)return "under-1min";
+    if(seconds<180)return "1-3min";
+    if(seconds<600)return "3-10min";
+    if(seconds<1800)return "10-30min";
+    return "30min-plus";
+  }
+
+  function trackSceneEntry(sceneId, sceneTitle){
+    if(!TRACKED_SCENES.includes(sceneId))return;
+    // Send duration of previous scene if any
+    if(window._lastTrackedScene && window._sceneStartTime){
+      const dur = Math.round((Date.now() - window._sceneStartTime) / 1000);
+      const bucket = bucketDuration(dur);
+      gcTrack("/game/duration/"+window._lastTrackedScene+"/"+bucket, "Time on "+window._lastTrackedScene+": "+bucket);
+    }
+    gcTrack("/game/scene/"+sceneId, "Scene: "+(sceneTitle||sceneId));
+    window._lastTrackedScene = sceneId;
+    window._sceneStartTime = Date.now();
+  }
+
+  function trackGameTotalTime(){
+    if(!window._gameStartTime)return;
+    const total = Math.round((Date.now() - window._gameStartTime) / 1000);
+    const bucket = bucketTotalTime(total);
+    gcTrack("/game/total-time/"+bucket, "Total game time: "+bucket);
+  }
+
+  function getAndIncrementPlayCount(){
+    try{
+      const cur = parseInt(localStorage.getItem(PLAY_COUNT_KEY) || "0", 10);
+      const next = cur + 1;
+      localStorage.setItem(PLAY_COUNT_KEY, String(next));
+      return next;
+    }catch(e){ return 1; /* localStorage unavailable in sandboxed iframes */ }
+  }
+</script>
+<script data-goatcounter="https://nanonnien.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div id="app">
@@ -199,7 +266,7 @@ button:not(:disabled):active{transform:translateY(1px)}
     </div>
   </div>
 </div>
-<div style="position:fixed;bottom:.5rem;right:.7rem;font-size:.65rem;color:var(--parchment-shadow);opacity:.45;font-family:'Cormorant Garamond',serif;letter-spacing:.1em;z-index:20;pointer-events:none">v3.6 · 4 mai 2026</div>
+<div style="position:fixed;bottom:.5rem;right:.7rem;font-size:.65rem;color:var(--parchment-shadow);opacity:.45;font-family:'Cormorant Garamond',serif;letter-spacing:.1em;z-index:20;pointer-events:none">v3.8 · 4 juin 2026</div>
 <script>
 // ====== SVG ILLUSTRATIONS ======
 const ILLU = {
@@ -449,7 +516,25 @@ const nameInput=$("player-name"),confirmBtn=$("confirm-character");
 document.querySelectorAll(".origin-card").forEach(c=>{c.onclick=()=>{document.querySelectorAll(".origin-card").forEach(x=>x.classList.remove("selected"));c.classList.add("selected");selectedOrigin=c.dataset.origin;updateConfirm();};});
 nameInput.oninput=updateConfirm;
 function updateConfirm(){confirmBtn.disabled=!(nameInput.value.trim()&&selectedOrigin);}
-confirmBtn.onclick=()=>{S.name=nameInput.value.trim()||"Voyageur";S.origin=selectedOrigin;if(selectedOrigin==="lame")S.stats.cou+=2;if(selectedOrigin==="plume")S.stats.sag+=2;if(selectedOrigin==="ombre")S.stats.ast+=2;show("game");updateTime();renderScene("start");};
+confirmBtn.onclick=()=>{
+  S.name=nameInput.value.trim()||"Voyageur";
+  S.origin=selectedOrigin;
+  if(selectedOrigin==="lame")S.stats.cou+=2;
+  if(selectedOrigin==="plume")S.stats.sag+=2;
+  if(selectedOrigin==="ombre")S.stats.ast+=2;
+  // Analytics: play number (cumulative across visits via localStorage) and class
+  const playNum = getAndIncrementPlayCount();
+  const playLabel = playNum <= 10 ? String(playNum) : "10plus";
+  gcTrack("/game/play-number/"+playLabel, "Play #"+playLabel);
+  gcTrack("/game/start/"+selectedOrigin,"Start as "+selectedOrigin);
+  // Reset session analytics state
+  window._gameStartTime = Date.now();
+  window._sceneStartTime = null;
+  window._lastTrackedScene = null;
+  show("game");
+  updateTime();
+  renderScene("start");
+};
 
 function applyFx(fx){if(!fx)return;const old={...S.stats};if(fx.cou)S.stats.cou+=fx.cou;if(fx.sag)S.stats.sag+=fx.sag;if(fx.ast)S.stats.ast+=fx.ast;if(fx.coe)S.stats.coe+=fx.coe;if(fx.add)fx.add.forEach(it=>S.inv.push(it));if(fx.rem)fx.rem.forEach(it=>{const i=S.inv.indexOf(it);if(i>=0)S.inv.splice(i,1);});if(fx.tic)S.tics+=fx.tic;if(fx.flag)S.flags[fx.flag]=true;updateStats(old);updateInv();updateTime();}
 function updateTime(){const bar=$("moon-bar"),icon=$("moon-icon"),lbl=$("moon-label");const t=S.tics;let phase,label,cls="";if(t<=1){phase="🌒";label="Jour 1 — la lune décroît";}else if(t<=3){phase="🌓";label="Jour 2 — la brume avance";}else if(t<=5){phase="🌔";label="Jour 3 — il te reste peu";cls="warn";}else{phase="🌑";label="LUNE NOUVELLE — il est trop tard";cls="danger";}icon.textContent=phase;lbl.textContent=label;bar.className="moon-bar"+(cls?" "+cls:"");}
@@ -478,6 +563,8 @@ function renderScene(id){
   if(id==="altar"&&S.tics>5){return showEnding("trop_tard");}
   if(id==="altar"&&S.stats.coe<=0){return renderRejection();}
   let scene=STORY[id],title,text,choices,illu;
+  // Analytics: track entry to major scenes with duration of previous one
+  trackSceneEntry(id, scene ? scene.title : id);
   if(scene.dynamic&&id==="guardian"){
     const gq=pickGuardianQuestion();
     title=scene.title;illu=scene.illu;text=scene.intro+"<p>"+gq.q+"</p>";choices=[...gq.choices];
@@ -552,6 +639,11 @@ function pickChoice(c){
     }
   }
   if(c.fx)applyFx(c.fx);
+  if(c.text&&c.text.startsWith("⚡")){
+    // Extract a slug from the choice for tracking — keep it short and meaningful
+    const slug=c.text.replace(/^⚡\s*/,"").split(/[\s(]/).slice(0,3).join("-").toLowerCase().replace(/[^a-z0-9-]/g,"");
+    gcTrack("/game/shortcut/"+slug,"Shortcut: "+c.text);
+  }
   const advance=()=>{if(c.ending)showEnding(c.ending);else if(c.next)renderScene(c.next);};
   if(c.flavor){
     $("scene-text").innerHTML='<p class="flavor">'+c.flavor+"</p>";
@@ -571,6 +663,13 @@ function pickChoice(c){
 
 function showEnding(id){
   const e=ENDINGS[id];
+  // Flush last scene duration before sending ending event
+  if(window._lastTrackedScene && window._sceneStartTime){
+    const dur = Math.round((Date.now() - window._sceneStartTime) / 1000);
+    gcTrack("/game/duration/"+window._lastTrackedScene+"/"+bucketDuration(dur), "Time on "+window._lastTrackedScene+": "+bucketDuration(dur));
+  }
+  trackGameTotalTime();
+  gcTrack("/game/ending/"+id,"Ending: "+e.title+" (as "+S.origin+", "+S.tics+" tics)");
   $("ending-title").textContent=e.title;
   $("ending-text").innerHTML=e.text;
   $("ending-stats").innerHTML=`<div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:1rem;font-family:'Cormorant Unicase'"><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">⚔ COURAGE</div><div style="color:var(--c-cou);font-size:1.5rem">${S.stats.cou}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">📜 SAGESSE</div><div style="color:var(--c-sag);font-size:1.5rem">${S.stats.sag}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">🗝 ASTUCE</div><div style="color:var(--c-ast);font-size:1.5rem">${S.stats.ast}</div></div><div><div style="color:var(--parchment-shadow);font-size:.7rem;letter-spacing:.15em">❤ CŒUR</div><div style="color:var(--c-coe);font-size:1.5rem">${S.stats.coe}</div></div></div>`;
